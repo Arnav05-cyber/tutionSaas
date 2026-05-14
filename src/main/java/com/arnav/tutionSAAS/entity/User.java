@@ -35,7 +35,7 @@ public class User {
 
     private String grade; // Store as "9", "10", "11", or "12"
 
-    private boolean isApproved = false; // Admin manually approves teachers
+    private boolean blocked = false; // Admin can block for unpaid fees
 
     private boolean onboardingComplete = false; // True once they give phone/grade
 

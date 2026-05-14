@@ -36,10 +36,6 @@ public class BatchService {
             throw new RuntimeException("Only teachers can create batches");
         }
 
-        if (!teacher.isApproved()) {
-            throw new RuntimeException("Teacher must be approved before creating batches");
-        }
-
         Batch batch = batchMapper.toBatchEntity(request, teacher);
         Batch saved = batchRepo.save(batch);
         return batchMapper.toBatchResponse(saved);

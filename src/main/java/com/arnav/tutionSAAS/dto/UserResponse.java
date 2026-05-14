@@ -11,6 +11,6 @@ public class UserResponse {
     private String phoneNumber;
     private String role;
     private String grade;
-    private boolean isApproved;
+    private boolean blocked;
     private boolean onboardingComplete;
 }

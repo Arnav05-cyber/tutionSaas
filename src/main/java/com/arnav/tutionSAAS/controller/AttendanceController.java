@@ -25,13 +25,13 @@ public class AttendanceController {
     }
 
     @GetMapping("/api/sessions/{sessionId}/attendance")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<AttendanceResponse> getAttendance(@PathVariable Long sessionId) {
         return ResponseEntity.ok(attendanceService.getAttendanceForSession(sessionId));
     }
 
     @GetMapping("/api/batches/{batchId}/students/{studentId}/attendance")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<AttendanceService.AttendanceSummary> getStudentSummary(
             @PathVariable Long batchId,
             @PathVariable Long studentId) {

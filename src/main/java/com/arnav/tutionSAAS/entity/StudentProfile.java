@@ -19,9 +19,7 @@ public class StudentProfile {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private String parentName;
-    private String parentPhoneNumber;
-
+    private String parentLinkCode; // 6-char code like "A3X9K2", student generates & shares with parent
 
     private boolean isFeesPaidForCurrentMonth = false;
 }

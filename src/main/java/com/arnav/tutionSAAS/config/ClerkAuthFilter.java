@@ -24,8 +24,10 @@ import java.util.Optional;
  * from our database (using the clerkId from the JWT 'sub' claim) and
  * replaces the authentication with one that includes ROLE_ authorities.
  *
- * This enables @PreAuthorize("hasRole('TEACHER')") etc. to work
- * since Clerk JWTs don't natively carry our application roles.
+ * Blocked users are still authenticated normally — the frontend reads
+ * the 'blocked' flag from GET /api/users/me and shows the blocked message.
+ * This allows blocked students to still reach /api/users/me without getting
+ * a 401, while any further business actions can check blocked status as needed.
  */
 @Component
 public class ClerkAuthFilter extends OncePerRequestFilter {
@@ -47,11 +49,11 @@ public class ClerkAuthFilter extends OncePerRequestFilter {
             Optional<User> userOpt = userRepo.findByClerkId(clerkId);
             if (userOpt.isPresent()) {
                 User user = userOpt.get();
-                String role = "ROLE_" + user.getRole().name(); // e.g. ROLE_TEACHER
+                String role = "ROLE_" + user.getRole().name(); // e.g. ROLE_PARENT
 
                 UsernamePasswordAuthenticationToken newAuth =
                         new UsernamePasswordAuthenticationToken(
-                                jwt, // principal stays as JWT
+                                jwt,
                                 null,
                                 List.of(new SimpleGrantedAuthority(role))
                         );

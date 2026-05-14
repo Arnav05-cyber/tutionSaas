@@ -40,6 +40,8 @@ public class Batch {
     @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ScheduleSlot> scheduleSlots = new HashSet<>();
 
+    private double monthlyFee = 0.0; // Admin can set/change monthly fee for this batch
+
     private boolean isActive = true;
 
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -20,7 +20,7 @@ public interface ClassSessionRepo extends JpaRepository<ClassSession, Long> {
         LocalDateTime from, LocalDateTime to, SessionStatus status
     );
 
-    // For payout calculation: count completed sessions for a teacher in a given month
+    // Completed sessions for a teacher in a given date range
     List<ClassSession> findByBatch_Teacher_IdAndStatusAndScheduledAtBetween(
         Long teacherId, SessionStatus status, LocalDateTime from, LocalDateTime to
     );

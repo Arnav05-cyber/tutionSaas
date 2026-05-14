@@ -1,7 +1,8 @@
 package com.arnav.tutionSAAS.controller;
 
-import com.arnav.tutionSAAS.dto.PayoutResponse;
-import com.arnav.tutionSAAS.entity.User;
+import com.arnav.tutionSAAS.dto.FeeStatusResponse;
+import com.arnav.tutionSAAS.dto.InviteRequest;
+import com.arnav.tutionSAAS.dto.InviteResponse;
 import com.arnav.tutionSAAS.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -17,42 +19,44 @@ public class AdminController {
 
     @Autowired private AdminService adminService;
 
-    // ─── Teacher Approval ───
+    // ─── Teacher Invites ───
 
-    @GetMapping("/teachers/pending")
-    public ResponseEntity<List<User>> getPendingTeachers() {
-        return ResponseEntity.ok(adminService.getPendingTeachers());
+    @PostMapping("/invites")
+    public ResponseEntity<InviteResponse> generateInvite(@RequestBody(required = false) InviteRequest request) {
+        return ResponseEntity.ok(adminService.generateTeacherInvite(request));
     }
 
-    @PutMapping("/teachers/{id}/approve")
-    public ResponseEntity<User> approveTeacher(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.approveTeacher(id));
+    @GetMapping("/invites")
+    public ResponseEntity<List<InviteResponse>> getAllInvites() {
+        return ResponseEntity.ok(adminService.getAllInvites());
     }
 
-    @DeleteMapping("/teachers/{id}/reject")
-    public ResponseEntity<Void> rejectTeacher(@PathVariable Long id) {
-        adminService.rejectTeacher(id);
+    // ─── Fee Management ───
+
+    @GetMapping("/fees")
+    public ResponseEntity<List<FeeStatusResponse>> getAllFeeStatus() {
+        return ResponseEntity.ok(adminService.getAllFeeStatus());
+    }
+
+    @PutMapping("/students/{id}/block")
+    public ResponseEntity<Void> blockStudent(@PathVariable Long id) {
+        adminService.blockStudent(id);
         return ResponseEntity.noContent().build();
     }
 
-    // ─── Payout Management ───
-
-    @PostMapping("/payouts/generate")
-    public ResponseEntity<PayoutResponse> generatePayout(
-            @RequestParam Long teacherId,
-            @RequestParam String month) {
-        return ResponseEntity.ok(adminService.generatePayout(teacherId, month));
+    @PutMapping("/students/{id}/unblock")
+    public ResponseEntity<Void> unblockStudent(@PathVariable Long id) {
+        adminService.unblockStudent(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/payouts/{id}/pay")
-    public ResponseEntity<PayoutResponse> markPaid(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.markPaid(id));
-    }
-
-    @GetMapping("/payouts")
-    public ResponseEntity<List<PayoutResponse>> getAllPayouts(
-            @RequestParam(required = false) String month) {
-        return ResponseEntity.ok(adminService.getAllPayouts(month));
+    @PutMapping("/batches/{id}/fee")
+    public ResponseEntity<Void> setMonthlyFee(
+            @PathVariable Long id,
+            @RequestBody Map<String, Double> body) {
+        double amount = body.getOrDefault("monthlyFee", 0.0);
+        adminService.setMonthlyFee(id, amount);
+        return ResponseEntity.noContent().build();
     }
 
     // ─── Dashboard ───

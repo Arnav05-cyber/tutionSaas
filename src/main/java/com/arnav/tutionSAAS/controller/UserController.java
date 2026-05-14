@@ -7,9 +7,12 @@ import com.arnav.tutionSAAS.repository.UserRepo;
 import com.arnav.tutionSAAS.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -30,10 +33,20 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
-        String clerkId = jwt.getSubject();
-        User user = userRepo.findByClerkId(clerkId)
+        User user = userRepo.findByClerkId(jwt.getSubject())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.ok(toResponse(user));
+    }
+
+    /**
+     * Student generates a 6-char code to share with their parent.
+     * Returns the code. Idempotent — repeated calls return the same code.
+     */
+    @PostMapping("/generate-link-code")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Map<String, String>> generateLinkCode(@AuthenticationPrincipal Jwt jwt) {
+        String code = userService.generateParentLinkCode(jwt.getSubject());
+        return ResponseEntity.ok(Map.of("linkCode", code));
     }
 
     private UserResponse toResponse(User user) {
@@ -45,7 +58,7 @@ public class UserController {
         r.setPhoneNumber(user.getPhoneNumber());
         r.setRole(user.getRole().name());
         r.setGrade(user.getGrade());
-        r.setApproved(user.isApproved());
+        r.setBlocked(user.isBlocked());
         r.setOnboardingComplete(user.isOnboardingComplete());
         return r;
     }
