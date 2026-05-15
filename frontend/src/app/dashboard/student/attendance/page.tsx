@@ -18,7 +18,7 @@ export default function StudentAttendancePage() {
   useEffect(() => {
     async function load() {
       const token = await getToken();
-      const data = await api.get('/api/batches/student', token);
+      const data = await api.get('/api/batches/my', token);
       setBatches(data);
       setLoading(false);
     }

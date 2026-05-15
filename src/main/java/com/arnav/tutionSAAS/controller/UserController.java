@@ -33,8 +33,14 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal Jwt jwt) {
-        User user = userRepo.findByClerkId(jwt.getSubject())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        String clerkId = jwt.getSubject();
+        System.out.println("GET /api/users/me called with clerkId: " + clerkId);
+        User user = userRepo.findByClerkId(clerkId).orElse(null);
+        if (user == null) {
+            System.out.println("User not found in local DB for clerkId: " + clerkId);
+            throw new RuntimeException("User not found");
+        }
+        System.out.println("User found in local DB: " + user.getEmail() + ", role: " + user.getRole());
         return ResponseEntity.ok(toResponse(user));
     }
 

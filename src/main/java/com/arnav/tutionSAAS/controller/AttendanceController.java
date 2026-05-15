@@ -31,7 +31,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/api/batches/{batchId}/students/{studentId}/attendance")
-    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN', 'STUDENT')")
     public ResponseEntity<AttendanceService.AttendanceSummary> getStudentSummary(
             @PathVariable Long batchId,
             @PathVariable Long studentId) {

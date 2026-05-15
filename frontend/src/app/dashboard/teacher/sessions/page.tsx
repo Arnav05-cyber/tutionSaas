@@ -21,7 +21,7 @@ export default function TeacherSessionsPage() {
   useEffect(() => {
     async function load() {
       const token = await getToken();
-      const batches = await api.get('/api/batches/teacher', token);
+      const batches = await api.get('/api/batches/my', token);
       const allSessions: Session[] = [];
       for (const batch of batches) {
         const batchSessions = await api.get(`/api/batches/${batch.id}/sessions`, token);
