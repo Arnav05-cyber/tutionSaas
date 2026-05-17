@@ -68,7 +68,9 @@ public class RazorpayService {
             options.put("razorpay_payment_id", razorpayPaymentId);
             options.put("razorpay_signature", razorpaySignature);
 
+            System.out.println("Verifying payment for order: " + razorpayOrderId);
             boolean isValid = Utils.verifyPaymentSignature(options, keySecret);
+            System.out.println("Signature isValid: " + isValid);
 
             PaymentHistory paymentHistory = paymentHistoryRepo.findByRazorpayOrderId(razorpayOrderId)
                     .orElseThrow(() -> new RuntimeException("Order not found"));
