@@ -27,13 +27,16 @@ public class BatchService {
     @Autowired
     private BatchMapper batchMapper;
 
+    /**
+     * Admin creates a batch and assigns a teacher by ID.
+     */
     @Transactional
-    public BatchResponse createBatch(String clerkId, BatchRequest request) {
-        User teacher = userRepo.findByClerkId(clerkId)
+    public BatchResponse createBatch(BatchRequest request) {
+        User teacher = userRepo.findById(request.getTeacherId())
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
 
         if (teacher.getRole() != Role.TEACHER) {
-            throw new RuntimeException("Only teachers can create batches");
+            throw new RuntimeException("Assigned user is not a teacher");
         }
 
         Batch batch = batchMapper.toBatchEntity(request, teacher);
@@ -41,17 +44,33 @@ public class BatchService {
         return batchMapper.toBatchResponse(saved);
     }
 
+    /**
+     * Admin assigns a teacher to an existing batch.
+     */
     @Transactional
-    public BatchResponse addStudentToBatch(Long batchId, Long studentId, String clerkId) {
+    public BatchResponse assignTeacher(Long batchId, Long teacherId) {
         Batch batch = batchRepo.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Batch not found"));
 
-        // Verify the requesting user owns this batch
-        User teacher = userRepo.findByClerkId(clerkId)
+        User teacher = userRepo.findById(teacherId)
                 .orElseThrow(() -> new RuntimeException("Teacher not found"));
-        if (!batch.getTeacher().getId().equals(teacher.getId())) {
-            throw new RuntimeException("You can only manage your own batches");
+
+        if (teacher.getRole() != Role.TEACHER) {
+            throw new RuntimeException("Assigned user is not a teacher");
         }
+
+        batch.setTeacher(teacher);
+        Batch saved = batchRepo.save(batch);
+        return batchMapper.toBatchResponse(saved);
+    }
+
+    /**
+     * Admin adds a student to a batch.
+     */
+    @Transactional
+    public BatchResponse addStudentToBatch(Long batchId, Long studentId) {
+        Batch batch = batchRepo.findById(batchId)
+                .orElseThrow(() -> new RuntimeException("Batch not found"));
 
         User student = userRepo.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -60,27 +79,18 @@ public class BatchService {
             throw new RuntimeException("Can only add students to batches");
         }
 
-        // Validate grade match
-        if (!batch.getGrade().equals(student.getGrade())) {
-            throw new RuntimeException("Student grade (" + student.getGrade() +
-                    ") does not match batch grade (" + batch.getGrade() + ")");
-        }
-
         batch.getStudents().add(student);
         Batch saved = batchRepo.save(batch);
         return batchMapper.toBatchResponse(saved);
     }
 
+    /**
+     * Admin removes a student from a batch.
+     */
     @Transactional
-    public BatchResponse removeStudentFromBatch(Long batchId, Long studentId, String clerkId) {
+    public BatchResponse removeStudentFromBatch(Long batchId, Long studentId) {
         Batch batch = batchRepo.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Batch not found"));
-
-        User teacher = userRepo.findByClerkId(clerkId)
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
-        if (!batch.getTeacher().getId().equals(teacher.getId())) {
-            throw new RuntimeException("You can only manage your own batches");
-        }
 
         batch.getStudents().removeIf(s -> s.getId().equals(studentId));
         Batch saved = batchRepo.save(batch);

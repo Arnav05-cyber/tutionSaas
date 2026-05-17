@@ -30,6 +30,7 @@ const NAV: Record<string, { label: string; href: string }[]> = {
     { label: 'Dashboard', href: '/dashboard/student' },
     { label: 'Sessions', href: '/dashboard/student/sessions' },
     { label: 'Attendance', href: '/dashboard/student/attendance' },
+    { label: 'Fees', href: '/dashboard/student/fees' },
     { label: 'Parent Link', href: '/dashboard/student/link-code' },
   ],
   PARENT: [
@@ -39,18 +40,20 @@ const NAV: Record<string, { label: string; href: string }[]> = {
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     async function load() {
       try {
         const token = await getToken();
         const data = await api.get('/api/users/me', token);
-        if (!data.onboardingComplete) {
+        if (!data.onboardingComplete && data.role !== 'ADMIN') {
           router.push('/onboarding');
           return;
         }
@@ -62,7 +65,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     }
     load();
-  }, []);
+  }, [isLoaded, getToken, router]);
 
   if (loading) {
     return <div className="loading-page"><div className="spinner" /></div>;
@@ -88,7 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="layout-wrap">
       <aside className="sidebar">
-        <div className="sidebar-brand">TutionSAAS</div>
+        <div className="sidebar-brand" style={{ letterSpacing: '1px' }}>EDUSHA</div>
         <nav className="sidebar-nav">
           {links.map(link => (
             <Link

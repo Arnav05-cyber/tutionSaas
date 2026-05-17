@@ -22,13 +22,21 @@ public class BatchController {
     @Autowired private BatchService batchService;
     @Autowired private UserRepo userRepo;
 
+    // ─── Admin creates a batch ───
+
     @PostMapping
-    @PreAuthorize("hasRole('TEACHER')")
-    public ResponseEntity<BatchResponse> createBatch(
-            @AuthenticationPrincipal Jwt jwt,
-            @RequestBody BatchRequest request) {
-        return ResponseEntity.ok(batchService.createBatch(jwt.getSubject(), request));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BatchResponse> createBatch(@RequestBody BatchRequest request) {
+        return ResponseEntity.ok(batchService.createBatch(request));
     }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<BatchResponse>> getAllBatches() {
+        return ResponseEntity.ok(batchService.getAllBatches());
+    }
+
+    // ─── Teacher views their assigned batches ───
 
     @GetMapping("/my")
     public ResponseEntity<List<BatchResponse>> getMyBatches(@AuthenticationPrincipal Jwt jwt) {
@@ -47,21 +55,31 @@ public class BatchController {
         return ResponseEntity.ok(batchService.getBatchById(id));
     }
 
+    // ─── Admin manages students in a batch ───
+
     @PostMapping("/{id}/students/{studentId}")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BatchResponse> addStudent(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
             @PathVariable Long studentId) {
-        return ResponseEntity.ok(batchService.addStudentToBatch(id, studentId, jwt.getSubject()));
+        return ResponseEntity.ok(batchService.addStudentToBatch(id, studentId));
     }
 
     @DeleteMapping("/{id}/students/{studentId}")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<BatchResponse> removeStudent(
-            @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long id,
             @PathVariable Long studentId) {
-        return ResponseEntity.ok(batchService.removeStudentFromBatch(id, studentId, jwt.getSubject()));
+        return ResponseEntity.ok(batchService.removeStudentFromBatch(id, studentId));
+    }
+
+    // ─── Admin reassigns teacher ───
+
+    @PutMapping("/{id}/teacher/{teacherId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BatchResponse> assignTeacher(
+            @PathVariable Long id,
+            @PathVariable Long teacherId) {
+        return ResponseEntity.ok(batchService.assignTeacher(id, teacherId));
     }
 }

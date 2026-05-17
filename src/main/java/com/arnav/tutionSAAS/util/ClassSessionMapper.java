@@ -35,6 +35,7 @@ public class ClassSessionMapper {
         response.setStatus(session.getStatus().name());
         response.setBatchName(session.getBatch().getName());
         response.setBatchId(session.getBatch().getId());
+        response.setEndTime(session.getScheduledAt().plusMinutes(session.getDurationMinutes()));
         return response;
     }
 

@@ -1,7 +1,6 @@
 package com.arnav.tutionSAAS.service;
 
 import com.arnav.tutionSAAS.dto.FeeStatusResponse;
-import com.arnav.tutionSAAS.dto.InviteRequest;
 import com.arnav.tutionSAAS.dto.InviteResponse;
 import com.arnav.tutionSAAS.entity.*;
 import com.arnav.tutionSAAS.repository.*;
@@ -26,13 +25,12 @@ public class AdminService {
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
-    // ─── Teacher Invite ───
+    // ─── Teacher Invite (link-only) ───
 
     @Transactional
-    public InviteResponse generateTeacherInvite(InviteRequest request) {
+    public InviteResponse generateTeacherInvite() {
         TeacherInvite invite = new TeacherInvite();
         invite.setToken(UUID.randomUUID().toString());
-        invite.setEmail(request != null ? request.getEmail() : null);
         invite.setUsed(false);
         invite.setCreatedAt(LocalDateTime.now());
         invite.setExpiresAt(LocalDateTime.now().plusDays(7));
@@ -128,8 +126,7 @@ public class AdminService {
         InviteResponse dto = new InviteResponse();
         dto.setId(invite.getId());
         dto.setToken(invite.getToken());
-        dto.setInviteUrl(frontendUrl + "/signup?invite=" + invite.getToken());
-        dto.setEmail(invite.getEmail());
+        dto.setInviteUrl(frontendUrl + "/sign-up?invite=" + invite.getToken());
         dto.setUsed(invite.isUsed());
         dto.setExpiresAt(invite.getExpiresAt());
         dto.setCreatedAt(invite.getCreatedAt());

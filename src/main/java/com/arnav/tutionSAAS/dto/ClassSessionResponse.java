@@ -9,6 +9,7 @@ public class ClassSessionResponse {
     private Long id;
     private String title;
     private LocalDateTime scheduledAt;
+    private LocalDateTime endTime;
     private int durationMinutes;
     private String googleMeetLink;
     private String status;

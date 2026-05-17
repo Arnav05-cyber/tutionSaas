@@ -41,9 +41,11 @@ public class BatchMapper {
         response.setId(batch.getId());
         response.setName(batch.getName());
         response.setGrade(batch.getGrade());
+        response.setTeacherId(batch.getTeacher().getId());
         response.setTeacherName(batch.getTeacher().getFullName());
         response.setStudentCount(batch.getStudents().size());
         response.setActive(batch.isActive());
+        response.setMonthlyFee(batch.getMonthlyFee());
 
         response.setSchedule(
             batch.getScheduleSlots().stream().map(slot -> {
@@ -52,6 +54,17 @@ public class BatchMapper {
                 info.setDayOfWeek(slot.getDayOfWeek());
                 info.setStartTime(slot.getStartTime());
                 info.setDurationMinutes(slot.getDurationMinutes());
+                return info;
+            }).collect(Collectors.toList())
+        );
+
+        response.setStudents(
+            batch.getStudents().stream().map(student -> {
+                BatchResponse.StudentInfo info = new BatchResponse.StudentInfo();
+                info.setId(student.getId());
+                info.setFullName(student.getFullName());
+                info.setEmail(student.getEmail());
+                info.setGrade(student.getGrade());
                 return info;
             }).collect(Collectors.toList())
         );

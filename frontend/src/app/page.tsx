@@ -11,7 +11,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (isSignedIn) {
-      router.push('/onboarding');
+      router.push('/dashboard');
     }
   }, [isSignedIn, router]);
 
@@ -23,30 +23,26 @@ export default function LandingPage() {
         padding: '16px 0',
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '16px', fontWeight: 600 }}>TutionSAAS</span>
+          <span style={{ fontSize: '18px', fontWeight: 700, letterSpacing: '1px' }}>EDUSHA</span>
           <div style={{ display: 'flex', gap: '8px' }}>
             <Link href="/sign-in" className="btn">Sign In</Link>
-            <Link href="/sign-up" className="btn btn-primary">Get Started</Link>
+            <Link href="/sign-up" className="btn btn-primary">Join Now</Link>
           </div>
         </div>
       </header>
 
       {/* Hero */}
       <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', maxWidth: '560px', padding: '48px 24px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 700, lineHeight: 1.3, marginBottom: '12px' }}>
-            Manage your tuition center, effortlessly.
+        <div style={{ textAlign: 'center', maxWidth: '640px', padding: '48px 24px' }}>
+          <h1 style={{ fontSize: '42px', fontWeight: 800, lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.5px' }}>
+            Excellence in Education.
           </h1>
-          <p style={{ fontSize: '15px', color: 'var(--text-muted)', marginBottom: '28px', lineHeight: 1.6 }}>
-            Batches, sessions, attendance, fees, and parent communication — all in one place.
-            Built for teachers and tuition owners who value simplicity.
+          <p style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: '32px', lineHeight: 1.6 }}>
+            Welcome to EDUSHA's official student portal. Access your enrolled batches, join live interactive sessions, track your attendance, and manage your academic progress—all in one seamless platform.
           </p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-            <Link href="/sign-up" className="btn btn-primary" style={{ padding: '10px 24px' }}>
-              Start for free
-            </Link>
-            <Link href="/sign-in" className="btn" style={{ padding: '10px 24px' }}>
-              Sign in
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <Link href="/sign-up" className="btn btn-primary" style={{ padding: '12px 28px', fontSize: '15px' }}>
+              Sign Up for Free
             </Link>
           </div>
         </div>
@@ -55,12 +51,12 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{
         borderTop: '1px solid var(--border)',
-        padding: '16px 0',
+        padding: '24px 0',
         textAlign: 'center',
         fontSize: '13px',
         color: 'var(--text-muted)',
       }}>
-        TutionSAAS
+        &copy; {new Date().getFullYear()} EDUSHA. All rights reserved.
       </footer>
     </div>
   );

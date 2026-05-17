@@ -10,6 +10,7 @@ import java.util.List;
 public class BatchRequest {
     private String name;       // e.g. "Grade 10 - Batch A"
     private String grade;      // "9", "10", "11", "12"
+    private Long teacherId;    // Admin assigns a teacher
     private List<ScheduleSlotEntry> schedule; // Recurring weekly slots
 
     @Data

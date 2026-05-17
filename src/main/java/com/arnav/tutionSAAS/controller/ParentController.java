@@ -2,7 +2,7 @@ package com.arnav.tutionSAAS.controller;
 
 import com.arnav.tutionSAAS.dto.LinkedStudentResponse;
 import com.arnav.tutionSAAS.dto.ParentLinkRequest;
-import com.arnav.tutionSAAS.entity.StudentProfile;
+import com.arnav.tutionSAAS.entity.User;
 import com.arnav.tutionSAAS.service.AttendanceService;
 import com.arnav.tutionSAAS.service.ParentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,10 +59,77 @@ public class ParentController {
     public ResponseEntity<Map<String, Object>> getStudentFeeStatus(
             @AuthenticationPrincipal Jwt jwt,
             @PathVariable Long studentId) {
-        StudentProfile profile = parentService.getStudentFeeStatus(jwt.getSubject(), studentId);
+        return ResponseEntity.ok(parentService.getStudentFeeStatus(jwt.getSubject(), studentId));
+    }
+    
+    @Autowired private com.arnav.tutionSAAS.service.RazorpayService razorpayService;
+    @Autowired private com.arnav.tutionSAAS.repository.UserRepo userRepo;
+    @Autowired private com.arnav.tutionSAAS.repository.BatchRepo batchRepo;
+
+    @PostMapping("/students/{studentId}/fees/order")
+    public ResponseEntity<Map<String, Object>> createOrder(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentId) {
+        
+        parentService.getStudentFeeStatus(jwt.getSubject(), studentId); // Asserts link
+        
+        User student = userRepo.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        List<com.arnav.tutionSAAS.entity.Batch> batches = batchRepo.findByStudents_Id(studentId);
+        double totalFee = batches.stream().mapToDouble(com.arnav.tutionSAAS.entity.Batch::getMonthlyFee).sum();
+        
+        if (totalFee <= 0) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No fees due"));
+        }
+
+        String orderId = razorpayService.createOrder(totalFee, student);
+
         return ResponseEntity.ok(Map.of(
-                "studentId", studentId,
-                "feesPaidForCurrentMonth", profile.isFeesPaidForCurrentMonth()
+            "orderId", orderId,
+            "amount", totalFee,
+            "currency", "INR"
         ));
+    }
+
+    @PostMapping("/students/{studentId}/fees/verify")
+    public ResponseEntity<Map<String, Object>> verifyPayment(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentId,
+            @RequestBody Map<String, String> payload) {
+        
+        parentService.getStudentFeeStatus(jwt.getSubject(), studentId); // Asserts link
+        
+        String razorpayOrderId = payload.get("razorpay_order_id");
+        String razorpayPaymentId = payload.get("razorpay_payment_id");
+        String razorpaySignature = payload.get("razorpay_signature");
+
+        boolean isValid = razorpayService.verifyPayment(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+
+        if (isValid) {
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Payment verified successfully"
+            ));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Payment signature verification failed"
+            ));
+        }
+    }
+    
+    @GetMapping("/students/{studentId}/batches")
+    public ResponseEntity<List<com.arnav.tutionSAAS.dto.BatchResponse>> getStudentBatches(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentId) {
+        return ResponseEntity.ok(parentService.getStudentBatches(jwt.getSubject(), studentId));
+    }
+
+    @GetMapping("/students/{studentId}/sessions")
+    public ResponseEntity<List<com.arnav.tutionSAAS.dto.ClassSessionResponse>> getStudentSessions(
+            @AuthenticationPrincipal Jwt jwt,
+            @PathVariable Long studentId) {
+        return ResponseEntity.ok(parentService.getStudentSessions(jwt.getSubject(), studentId));
     }
 }

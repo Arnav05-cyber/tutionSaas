@@ -6,32 +6,43 @@ import { useState, useEffect, Suspense } from 'react';
 import api from '@/lib/api';
 
 function OnboardingForm() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const inviteToken = searchParams.get('invite') || '';
-  const hasInvite = inviteToken.length > 0;
-
+  const [hasInvite, setHasInvite] = useState(false);
   const [form, setForm] = useState({
     fullName: '',
     phoneNumber: '',
-    role: hasInvite ? 'TEACHER' : 'STUDENT',
+    role: 'STUDENT',
     grade: '',
     linkedinUrl: '',
-    inviteToken: inviteToken,
+    inviteToken: '',
   });
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    let token = searchParams.get('invite') || '';
+    if (!token && typeof window !== 'undefined') {
+      token = localStorage.getItem('teacherInviteToken') || '';
+    }
+    if (token) {
+      setHasInvite(true);
+      setForm(prev => ({ ...prev, role: 'TEACHER', inviteToken: token }));
+    }
+  }, [searchParams]);
+
   // Check if user is already onboarded
   useEffect(() => {
+    if (!isLoaded) return;
+
     async function check() {
       try {
         const token = await getToken();
         const user = await api.get('/api/users/me', token);
-        if (user && user.onboardingComplete) {
+        if (user && (user.onboardingComplete || user.role === 'ADMIN')) {
           // Already onboarded — go to dashboard
           redirectByRole(user.role);
           return;
@@ -42,7 +53,7 @@ function OnboardingForm() {
       setChecking(false);
     }
     check();
-  }, []);
+  }, [isLoaded, getToken]);
 
   function redirectByRole(role: string) {
     switch (role) {
@@ -62,6 +73,7 @@ function OnboardingForm() {
     try {
       const token = await getToken();
       const user = await api.post('/api/users/onboard', form, token);
+      localStorage.removeItem('teacherInviteToken');
       redirectByRole(user.role);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Onboarding failed');

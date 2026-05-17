@@ -8,7 +8,6 @@ interface Invite {
   id: number;
   token: string;
   inviteUrl: string;
-  email: string;
   used: boolean;
   expiresAt: string;
   createdAt: string;
@@ -17,7 +16,6 @@ interface Invite {
 export default function InvitesPage() {
   const { getToken } = useAuth();
   const [invites, setInvites] = useState<Invite[]>([]);
-  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
 
@@ -35,8 +33,7 @@ export default function InvitesPage() {
     setLoading(true);
     try {
       const token = await getToken();
-      await api.post('/api/admin/invites', email ? { email } : {}, token);
-      setEmail('');
+      await api.post('/api/admin/invites', {}, token);
       await loadInvites();
     } finally {
       setLoading(false);
@@ -51,26 +48,14 @@ export default function InvitesPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">Teacher Invites</h1>
-        <p className="page-subtitle">Generate invite links for teachers to sign up</p>
-      </div>
-
-      <div className="card" style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
-            <label className="input-label">Email (optional)</label>
-            <input
-              className="input"
-              placeholder="teacher@example.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-            />
-          </div>
-          <button className="btn btn-primary" onClick={generate} disabled={loading}>
-            {loading ? 'Generating...' : 'Generate Invite'}
-          </button>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1 className="page-title">Teacher Invites</h1>
+          <p className="page-subtitle">Generate invite links for teachers to sign up</p>
         </div>
+        <button className="btn btn-primary" onClick={generate} disabled={loading}>
+          {loading ? 'Generating...' : 'Generate Invite Link'}
+        </button>
       </div>
 
       <div className="card">
@@ -78,8 +63,8 @@ export default function InvitesPage() {
           <table>
             <thead>
               <tr>
-                <th>Email</th>
                 <th>Status</th>
+                <th>Created</th>
                 <th>Expires</th>
                 <th>Link</th>
               </tr>
@@ -90,11 +75,13 @@ export default function InvitesPage() {
               )}
               {invites.map(invite => (
                 <tr key={invite.id}>
-                  <td>{invite.email || '—'}</td>
                   <td>
                     <span className={`badge ${invite.used ? 'badge-success' : 'badge-accent'}`}>
                       {invite.used ? 'Used' : 'Active'}
                     </span>
+                  </td>
+                  <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    {new Date(invite.createdAt).toLocaleDateString()}
                   </td>
                   <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     {new Date(invite.expiresAt).toLocaleDateString()}
@@ -105,7 +92,7 @@ export default function InvitesPage() {
                       onClick={() => copyLink(invite)}
                       disabled={invite.used}
                     >
-                      {copied === invite.id ? 'Copied' : 'Copy Link'}
+                      {copied === invite.id ? 'Copied!' : 'Copy Link'}
                     </button>
                   </td>
                 </tr>

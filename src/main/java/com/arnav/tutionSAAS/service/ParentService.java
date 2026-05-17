@@ -19,6 +19,10 @@ public class ParentService {
     @Autowired private AttendanceRepo attendanceRepo;
     @Autowired private BatchRepo batchRepo;
 
+    @Autowired private com.arnav.tutionSAAS.util.BatchMapper batchMapper;
+    @Autowired private ClassSessionRepo classSessionRepo;
+    @Autowired private com.arnav.tutionSAAS.util.ClassSessionMapper sessionMapper;
+
     /**
      * Parent enters a student's 6-char link code to connect to them.
      */
@@ -90,10 +94,48 @@ public class ParentService {
     /**
      * Returns fee status for a student linked to this parent.
      */
-    public StudentProfile getStudentFeeStatus(String parentClerkId, Long studentId) {
+    public java.util.Map<String, Object> getStudentFeeStatus(String parentClerkId, Long studentId) {
         assertParentLinkedToStudent(parentClerkId, studentId);
-        return studentRepo.findById(studentId)
+        StudentProfile profile = studentRepo.findById(studentId)
                 .orElseThrow(() -> new RuntimeException("Student profile not found"));
+        
+        List<Batch> batches = batchRepo.findByStudents_Id(studentId);
+        double totalFee = batches.stream().mapToDouble(Batch::getMonthlyFee).sum();
+        
+        return java.util.Map.of(
+            "studentId", studentId,
+            "totalMonthlyFee", totalFee,
+            "feesPaidForCurrentMonth", profile.isFeesPaidForCurrentMonth()
+        );
+    }
+    
+    @Transactional
+    public void payStudentFees(String parentClerkId, Long studentId) {
+        assertParentLinkedToStudent(parentClerkId, studentId);
+        StudentProfile profile = studentRepo.findById(studentId)
+                .orElseThrow(() -> new RuntimeException("Student profile not found"));
+        profile.setFeesPaidForCurrentMonth(true);
+        studentRepo.save(profile);
+    }
+    
+    public List<com.arnav.tutionSAAS.dto.BatchResponse> getStudentBatches(String parentClerkId, Long studentId) {
+        assertParentLinkedToStudent(parentClerkId, studentId);
+        return batchRepo.findByStudents_Id(studentId).stream()
+                .map(batchMapper::toBatchResponse)
+                .collect(Collectors.toList());
+    }
+    
+    public List<com.arnav.tutionSAAS.dto.ClassSessionResponse> getStudentSessions(String parentClerkId, Long studentId) {
+        assertParentLinkedToStudent(parentClerkId, studentId);
+        List<Batch> batches = batchRepo.findByStudents_Id(studentId);
+        List<Long> batchIds = batches.stream().map(Batch::getId).collect(Collectors.toList());
+        if (batchIds.isEmpty()) return List.of();
+        
+        return classSessionRepo.findByBatch_IdInAndStatusAndScheduledAtAfterOrderByScheduledAtAsc(
+                batchIds, SessionStatus.SCHEDULED, java.time.LocalDateTime.now().minusHours(2))
+                .stream()
+                .map(sessionMapper::toSessionResponse)
+                .collect(Collectors.toList());
     }
 
     // ─── Guard: ensures the parent is actually linked to the student ───

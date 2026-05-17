@@ -1,8 +1,10 @@
 package com.arnav.tutionSAAS.controller;
 
 import com.arnav.tutionSAAS.dto.FeeStatusResponse;
-import com.arnav.tutionSAAS.dto.InviteRequest;
 import com.arnav.tutionSAAS.dto.InviteResponse;
+import com.arnav.tutionSAAS.entity.Role;
+import com.arnav.tutionSAAS.entity.User;
+import com.arnav.tutionSAAS.repository.UserRepo;
 import com.arnav.tutionSAAS.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -18,17 +21,33 @@ import java.util.Map;
 public class AdminController {
 
     @Autowired private AdminService adminService;
+    @Autowired private UserRepo userRepo;
 
-    // ─── Teacher Invites ───
+    // ─── Teacher Invites (link-only, no email) ───
 
     @PostMapping("/invites")
-    public ResponseEntity<InviteResponse> generateInvite(@RequestBody(required = false) InviteRequest request) {
-        return ResponseEntity.ok(adminService.generateTeacherInvite(request));
+    public ResponseEntity<InviteResponse> generateInvite() {
+        return ResponseEntity.ok(adminService.generateTeacherInvite());
     }
 
     @GetMapping("/invites")
     public ResponseEntity<List<InviteResponse>> getAllInvites() {
         return ResponseEntity.ok(adminService.getAllInvites());
+    }
+
+    // ─── User Listing (for dropdowns) ───
+
+    @GetMapping("/users")
+    public ResponseEntity<List<Map<String, Object>>> getUsersByRole(@RequestParam String role) {
+        Role r = Role.valueOf(role.toUpperCase());
+        List<User> users = userRepo.findByRole(r);
+        List<Map<String, Object>> result = users.stream().map(u -> Map.<String, Object>of(
+                "id", u.getId(),
+                "fullName", u.getFullName() != null ? u.getFullName() : "",
+                "email", u.getEmail() != null ? u.getEmail() : "",
+                "grade", u.getGrade() != null ? u.getGrade() : ""
+        )).collect(Collectors.toList());
+        return ResponseEntity.ok(result);
     }
 
     // ─── Fee Management ───

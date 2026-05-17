@@ -2,8 +2,8 @@ import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
 
 export const metadata = {
-  title: 'TutionSAAS — Tuition Management Platform',
-  description: 'Manage batches, sessions, attendance, and fees for your tuition center.',
+  title: 'EDUSHA — Education Management',
+  description: 'Manage batches, sessions, attendance, and fees for EDUSHA.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -6,10 +6,12 @@ import { useEffect } from 'react';
 import api from '@/lib/api';
 
 export default function DashboardRedirect() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
+    if (!isLoaded) return;
+
     async function redirect() {
       try {
         const token = await getToken();
@@ -26,7 +28,7 @@ export default function DashboardRedirect() {
       }
     }
     redirect();
-  }, []);
+  }, [isLoaded, getToken, router]);
 
   return <div className="loading-page"><div className="spinner" /></div>;
 }
