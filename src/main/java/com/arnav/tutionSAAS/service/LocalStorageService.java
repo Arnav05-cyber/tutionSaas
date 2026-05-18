@@ -10,12 +10,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 /**
  * Local filesystem implementation of StorageService.
  * Files are stored under the configured upload directory.
- * Replace with S3StorageService for production.
+ * Active by default when app.storage.provider is not set or set to 'local'.
  */
 @Service
+@ConditionalOnProperty(name = "app.storage.provider", havingValue = "local", matchIfMissing = true)
 public class LocalStorageService implements StorageService {
 
     @Value("${app.storage.local.path:./uploads}")

@@ -14,7 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
 @Service
+@ConditionalOnProperty(name = "app.email.reminders.enabled", havingValue = "true", matchIfMissing = false)
 public class EmailReminderService {
 
     @Autowired

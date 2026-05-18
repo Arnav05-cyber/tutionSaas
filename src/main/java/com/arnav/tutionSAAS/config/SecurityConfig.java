@@ -24,6 +24,9 @@ public class SecurityConfig {
     @Autowired
     private ClerkAuthFilter clerkAuthFilter;
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url:http://localhost:3000}")
+    private String frontendUrl;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -47,7 +50,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Update when frontend URL is set
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", frontendUrl));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
