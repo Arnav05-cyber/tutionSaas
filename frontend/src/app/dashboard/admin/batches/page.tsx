@@ -50,6 +50,10 @@ const DAY_SHORT: Record<string, string> = {
   FRIDAY: 'Fri', SATURDAY: 'Sat', SUNDAY: 'Sun'
 };
 
+const DAY_INDEX: Record<string, number> = {
+  MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6, SUNDAY: 7
+};
+
 function formatTime(t: string) {
   const [h, m] = t.split(':').map(Number);
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -69,6 +73,7 @@ export default function AdminBatchesPage() {
   const [batchName, setBatchName] = useState('');
   const [batchGrade, setBatchGrade] = useState('10');
   const [batchTeacherId, setBatchTeacherId] = useState('');
+  const [batchFee, setBatchFee] = useState('');
   const [daySlots, setDaySlots] = useState<Record<string, DaySlot>>(
     Object.fromEntries(DAYS.map(d => [d, { enabled: false, startTime: '16:00', durationMinutes: 60 }]))
   );
@@ -113,6 +118,7 @@ export default function AdminBatchesPage() {
         name: batchName,
         grade: batchGrade,
         teacherId: Number(batchTeacherId),
+        monthlyFee: parseFloat(batchFee) || 0,
         schedule,
       }, token);
       setShowCreate(false);
@@ -130,6 +136,7 @@ export default function AdminBatchesPage() {
     setBatchName('');
     setBatchGrade('10');
     setBatchTeacherId('');
+    setBatchFee('');
     setDaySlots(Object.fromEntries(DAYS.map(d => [d, { enabled: false, startTime: '16:00', durationMinutes: 60 }])));
   }
 
@@ -163,7 +170,10 @@ export default function AdminBatchesPage() {
   }
 
   function getScheduleSummary(schedule: ScheduleSlot[]) {
-    return schedule.map(s => `${DAY_SHORT[s.dayOfWeek]} ${formatTime(s.startTime)}`).join(', ');
+    return [...schedule]
+      .sort((a, b) => DAY_INDEX[a.dayOfWeek] - DAY_INDEX[b.dayOfWeek])
+      .map(s => `${DAY_SHORT[s.dayOfWeek]} ${formatTime(s.startTime)}`)
+      .join(', ');
   }
 
   const manageBatch = batches.find(b => b.id === manageBatchId);
@@ -189,6 +199,10 @@ export default function AdminBatchesPage() {
               <div className="form-group">
                 <label className="input-label">Batch Name</label>
                 <input className="input" required placeholder="e.g. Grade 10 - Batch A" value={batchName} onChange={e => setBatchName(e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="input-label">Monthly Fee (₹)</label>
+                <input className="input" type="number" min="0" placeholder="e.g. 5000" value={batchFee} onChange={e => setBatchFee(e.target.value)} />
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div className="form-group" style={{ flex: 1 }}>

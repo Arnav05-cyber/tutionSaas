@@ -19,6 +19,7 @@ public class BatchMapper {
         batch.setGrade(dto.getGrade());
         batch.setTeacher(teacher);
         batch.setActive(true);
+        batch.setMonthlyFee(dto.getMonthlyFee() != null ? dto.getMonthlyFee() : 0.0);
         batch.setCreatedAt(LocalDateTime.now());
 
         // Map schedule slots

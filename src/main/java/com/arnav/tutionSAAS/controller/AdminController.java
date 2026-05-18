@@ -96,13 +96,13 @@ public class AdminController {
     @PostMapping("/join-requests/{id}/approve")
     public ResponseEntity<Void> approveJoinRequest(@PathVariable Long id) {
         batchService.approveJoinRequest(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/join-requests/{id}/reject")
     public ResponseEntity<Void> rejectJoinRequest(@PathVariable Long id) {
         batchService.rejectJoinRequest(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
 

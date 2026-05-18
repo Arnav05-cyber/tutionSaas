@@ -33,6 +33,10 @@ const DAY_SHORT: Record<string, string> = {
   FRIDAY: 'Fri', SATURDAY: 'Sat', SUNDAY: 'Sun'
 };
 
+const DAY_INDEX: Record<string, number> = {
+  MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6, SUNDAY: 7
+};
+
 function formatTime(t: string) {
   const [h, m] = t.split(':').map(Number);
   const ampm = h >= 12 ? 'PM' : 'AM';
@@ -48,6 +52,7 @@ export default function StudentDashboard() {
   const [joiningId, setJoiningId] = useState<number | null>(null);
 
   async function requestJoin(batchId: number) {
+    if (joiningId !== null) return; // Prevent double clicks
     setJoiningId(batchId);
     try {
       const token = await getToken();
@@ -55,8 +60,14 @@ export default function StudentDashboard() {
       alert('Join request sent successfully!');
       const availableData = await api.get('/api/batches/available', token);
       setAvailableBatches(availableData);
-    } catch (err) {
-      alert('Failed to send join request');
+    } catch (err: any) {
+      alert(`Error: ${err.message || 'Failed to send join request'}`);
+      // Refresh available batches anyway, just in case they were already enrolled or pending
+      try {
+        const token = await getToken();
+        const availableData = await api.get('/api/batches/available', token);
+        setAvailableBatches(availableData);
+      } catch (e) {}
     } finally {
       setJoiningId(null);
     }
@@ -112,7 +123,7 @@ export default function StudentDashboard() {
               </p>
               {b.schedule && b.schedule.length > 0 ? (
                 <div style={{ marginBottom: '8px' }}>
-                  {b.schedule.map((s, i) => (
+                  {[...b.schedule].sort((a, b) => DAY_INDEX[a.dayOfWeek] - DAY_INDEX[b.dayOfWeek]).map((s, i) => (
                     <span key={i} className="badge" style={{ marginRight: '4px', marginBottom: '4px' }}>
                       {DAY_SHORT[s.dayOfWeek]} {formatTime(s.startTime)}
                     </span>
@@ -144,7 +155,7 @@ export default function StudentDashboard() {
                 </p>
                 {b.schedule && b.schedule.length > 0 ? (
                   <div style={{ marginBottom: '16px' }}>
-                    {b.schedule.map((s, i) => (
+                    {[...b.schedule].sort((a, b) => DAY_INDEX[a.dayOfWeek] - DAY_INDEX[b.dayOfWeek]).map((s, i) => (
                       <span key={i} className="badge" style={{ marginRight: '4px', marginBottom: '4px' }}>
                         {DAY_SHORT[s.dayOfWeek]} {formatTime(s.startTime)}
                       </span>

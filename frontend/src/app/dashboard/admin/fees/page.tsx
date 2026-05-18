@@ -9,6 +9,9 @@ interface FeeStatus {
   studentName: string;
   email: string;
   grade: string;
+  studentPhone?: string;
+  parentPhone?: string;
+  parentEmail?: string;
   feesPaid: boolean;
   blocked: boolean;
   batchNames: string[];
@@ -59,6 +62,7 @@ export default function FeesPage() {
               <tr>
                 <th>Student</th>
                 <th>Email</th>
+                <th>Parent Contact</th>
                 <th>Grade</th>
                 <th>Batches</th>
                 <th>Fees</th>
@@ -72,14 +76,31 @@ export default function FeesPage() {
               )}
               {students.map(s => (
                 <tr key={s.studentId}>
-                  <td style={{ fontWeight: 500 }}>{s.studentName}</td>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{s.studentName}</div>
+                    {s.studentPhone && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>📞 {s.studentPhone}</div>}
+                  </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{s.email}</td>
+                  <td>
+                    {s.parentPhone || s.parentEmail ? (
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                        {s.parentPhone && <div>📞 {s.parentPhone}</div>}
+                        {s.parentEmail && <div>✉️ {s.parentEmail}</div>}
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>No parent linked</span>
+                    )}
+                  </td>
                   <td>{s.grade || '—'}</td>
                   <td style={{ fontSize: '13px' }}>{s.batchNames.join(', ') || '—'}</td>
                   <td>
-                    <span className={`badge ${s.feesPaid ? 'badge-success' : 'badge-danger'}`}>
-                      {s.feesPaid ? 'Paid' : 'Unpaid'}
-                    </span>
+                    {s.batchNames.length === 0 ? (
+                      <span className="badge badge-accent">N/A</span>
+                    ) : (
+                      <span className={`badge ${s.feesPaid ? 'badge-success' : 'badge-danger'}`}>
+                        {s.feesPaid ? 'Paid' : 'Unpaid'}
+                      </span>
+                    )}
                   </td>
                   <td>
                     {s.blocked && <span className="badge badge-danger">Blocked</span>}

@@ -10,6 +10,9 @@ public class FeeStatusResponse {
     private String studentName;
     private String email;
     private String grade;
+    private String studentPhone;
+    private String parentEmail;
+    private String parentPhone;
     private boolean feesPaid;
     private boolean blocked;
     private List<String> batchNames;

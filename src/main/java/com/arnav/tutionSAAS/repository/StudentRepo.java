@@ -10,4 +10,8 @@ import java.util.Optional;
 public interface StudentRepo extends JpaRepository<StudentProfile, Long> {
 
     Optional<StudentProfile> findByParentLinkCode(String parentLinkCode);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.data.jpa.repository.Query("UPDATE StudentProfile s SET s.isFeesPaidForCurrentMonth = false WHERE s.id IN (SELECT st.id FROM Batch b JOIN b.students st)")
+    void resetAllFees();
 }

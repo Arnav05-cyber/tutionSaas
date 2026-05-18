@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface ParentProfileRepo extends JpaRepository<ParentProfile, Long> {
 
     Optional<ParentProfile> findByUser_ClerkId(String clerkId);
+    java.util.List<ParentProfile> findByLinkedStudents_Id(Long studentId);
 }

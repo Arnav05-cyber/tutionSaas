@@ -95,7 +95,7 @@ public class BatchController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<Void> requestJoinBatch(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
         batchService.requestJoinBatch(jwt.getSubject(), id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }
 

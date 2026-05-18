@@ -19,6 +19,7 @@ public class AdminService {
 
     @Autowired private UserRepo userRepo;
     @Autowired private StudentRepo studentRepo;
+    @Autowired private ParentProfileRepo parentRepo;
     @Autowired private TeacherInviteRepo inviteRepo;
     @Autowired private BatchRepo batchRepo;
 
@@ -55,6 +56,7 @@ public class AdminService {
                     dto.setStudentName(student.getFullName());
                     dto.setEmail(student.getEmail());
                     dto.setGrade(student.getGrade());
+                    dto.setStudentPhone(student.getPhoneNumber());
                     dto.setBlocked(student.isBlocked());
 
                     StudentProfile profile = studentRepo.findById(student.getId()).orElse(null);
@@ -63,6 +65,13 @@ public class AdminService {
                     List<String> batchNames = batchRepo.findByStudents_Id(student.getId())
                             .stream().map(Batch::getName).collect(Collectors.toList());
                     dto.setBatchNames(batchNames);
+
+                    List<ParentProfile> parents = parentRepo.findByLinkedStudents_Id(student.getId());
+                    if (!parents.isEmpty()) {
+                        User pUser = parents.get(0).getUser();
+                        dto.setParentPhone(pUser.getPhoneNumber());
+                        dto.setParentEmail(pUser.getEmail());
+                    }
 
                     return dto;
                 })
@@ -108,6 +117,8 @@ public class AdminService {
 
         long unpaid = userRepo.findByRole(Role.STUDENT).stream()
                 .filter(s -> {
+                    List<Batch> enrolledBatches = batchRepo.findByStudents_Id(s.getId());
+                    if (enrolledBatches.isEmpty()) return false;
                     StudentProfile p = studentRepo.findById(s.getId()).orElse(null);
                     return p == null || !p.isFeesPaidForCurrentMonth();
                 }).count();
