@@ -333,6 +333,12 @@ export default function AdminBatchesPage() {
                   <button className="btn btn-sm btn-primary" onClick={e => { e.stopPropagation(); setManageBatchId(b.id); }}>
                     Manage Students
                   </button>
+                  <button className="btn btn-sm btn-primary" onClick={e => {
+                    e.stopPropagation();
+                    window.location.href = `/dashboard/admin/batches/${b.id}`;
+                  }}>
+                    Manage Sessions
+                  </button>
                   {editFeeId === b.id ? (
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }} onClick={e => e.stopPropagation()}>
                       <input className="input" style={{ width: '100px' }} type="number" value={feeValue} onChange={e => setFeeValue(e.target.value)} autoFocus placeholder="Amount" />

@@ -41,5 +41,11 @@ public class ClassSession {
 
     private boolean reminderSent = false;
 
+    @Column(nullable = false, length = 20)
+    private String platform = "EXTERNAL"; // "EXTERNAL" (Google Meet) or "INTERNAL" (Jitsi)
+
+    @Column(length = 255)
+    private String internalRoomId; // The unique Jitsi room name
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }

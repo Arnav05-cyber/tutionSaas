@@ -22,7 +22,7 @@ interface Batch {
 
 interface Session {
   id: number;
-  topic: string;
+  title: string;
   scheduledAt: string;
   status: string;
   googleMeetLink: string;
@@ -43,17 +43,36 @@ export default function StudentDashboard() {
   const { getToken } = useAuth();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
+  const [availableBatches, setAvailableBatches] = useState<Batch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [joiningId, setJoiningId] = useState<number | null>(null);
+
+  async function requestJoin(batchId: number) {
+    setJoiningId(batchId);
+    try {
+      const token = await getToken();
+      await api.post(`/api/batches/${batchId}/join`, {}, token);
+      alert('Join request sent successfully!');
+      const availableData = await api.get('/api/batches/available', token);
+      setAvailableBatches(availableData);
+    } catch (err) {
+      alert('Failed to send join request');
+    } finally {
+      setJoiningId(null);
+    }
+  }
 
   useEffect(() => {
     async function load() {
       const token = await getToken();
-      const [sessionsData, batchesData] = await Promise.all([
+      const [sessionsData, batchesData, availableData] = await Promise.all([
         api.get('/api/sessions/upcoming', token),
         api.get('/api/batches/my', token),
+        api.get('/api/batches/available', token),
       ]);
       setSessions(sessionsData);
       setBatches(batchesData);
+      setAvailableBatches(availableData);
       setLoading(false);
     }
     load();
@@ -107,6 +126,46 @@ export default function StudentDashboard() {
         </div>
       )}
 
+      {/* ─── Available Batches ─── */}
+      <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '12px', marginTop: '32px' }}>Available Batches</h2>
+      {availableBatches.length === 0 ? (
+        <div className="card empty-state" style={{ marginBottom: '24px' }}><p>No new available batches for your grade right now.</p></div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+          {availableBatches.map(b => (
+            <div key={b.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>{b.name}</h3>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>
+                  Teacher: {b.teacherName}
+                </p>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                  Fee: ₹{b.monthlyFee}/month
+                </p>
+                {b.schedule && b.schedule.length > 0 ? (
+                  <div style={{ marginBottom: '16px' }}>
+                    {b.schedule.map((s, i) => (
+                      <span key={i} className="badge" style={{ marginRight: '4px', marginBottom: '4px' }}>
+                        {DAY_SHORT[s.dayOfWeek]} {formatTime(s.startTime)}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>No schedule</p>
+                )}
+              </div>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => requestJoin(b.id)}
+                disabled={joiningId === b.id}
+              >
+                {joiningId === b.id ? 'Requesting...' : 'Request to Join'}
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ─── Upcoming Sessions ─── */}
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '12px' }}>Upcoming Sessions</h2>
       {sessions.length === 0 ? (
@@ -125,7 +184,7 @@ export default function StudentDashboard() {
               <tbody>
                 {sessions.map(s => (
                   <tr key={s.id}>
-                    <td style={{ fontWeight: 500 }}>{s.topic || 'Untitled'}</td>
+                    <td style={{ fontWeight: 500 }}>{s.title || 'Untitled'}</td>
                     <td style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                       {new Date(s.scheduledAt).toLocaleString()}
                     </td>

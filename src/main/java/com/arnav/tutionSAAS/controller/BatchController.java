@@ -82,4 +82,20 @@ public class BatchController {
             @PathVariable Long teacherId) {
         return ResponseEntity.ok(batchService.assignTeacher(id, teacherId));
     }
+
+    // ─── JOIN REQUESTS ───
+
+    @GetMapping("/available")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<BatchResponse>> getAvailableBatches(@AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(batchService.getAvailableBatchesForStudent(jwt.getSubject()));
+    }
+
+    @PostMapping("/{id}/join")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<Void> requestJoinBatch(@PathVariable Long id, @AuthenticationPrincipal Jwt jwt) {
+        batchService.requestJoinBatch(jwt.getSubject(), id);
+        return ResponseEntity.ok().build();
+    }
 }
+

@@ -19,6 +19,11 @@ public class ClassSessionMapper {
         session.setScheduledAt(dto.getScheduledAt());
         session.setDurationMinutes(dto.getDurationMinutes() > 0 ? dto.getDurationMinutes() : 60);
         session.setGoogleMeetLink(dto.getGoogleMeetLink());
+        if (dto.getPlatform() != null && dto.getPlatform().equals("INTERNAL")) {
+            session.setPlatform("INTERNAL");
+        } else {
+            session.setPlatform("EXTERNAL");
+        }
         session.setStatus(SessionStatus.SCHEDULED);
         session.setReminderSent(false);
         session.setCreatedAt(LocalDateTime.now());
@@ -35,6 +40,8 @@ public class ClassSessionMapper {
         response.setStatus(session.getStatus().name());
         response.setBatchName(session.getBatch().getName());
         response.setBatchId(session.getBatch().getId());
+        response.setPlatform(session.getPlatform());
+        response.setInternalRoomId(session.getInternalRoomId());
         response.setEndTime(session.getScheduledAt().plusMinutes(session.getDurationMinutes()));
         return response;
     }
@@ -44,5 +51,6 @@ public class ClassSessionMapper {
         if (dto.getScheduledAt() != null) session.setScheduledAt(dto.getScheduledAt());
         if (dto.getDurationMinutes() > 0) session.setDurationMinutes(dto.getDurationMinutes());
         if (dto.getGoogleMeetLink() != null) session.setGoogleMeetLink(dto.getGoogleMeetLink());
+        if (dto.getPlatform() != null) session.setPlatform(dto.getPlatform());
     }
 }

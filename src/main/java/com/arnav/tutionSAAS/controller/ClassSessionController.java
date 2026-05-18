@@ -20,7 +20,7 @@ public class ClassSessionController {
     @Autowired private ClassSessionService sessionService;
 
     @PostMapping("/api/batches/{batchId}/sessions")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<ClassSessionResponse> createSession(
             @PathVariable Long batchId,
             @RequestBody ClassSessionRequest request,
@@ -34,7 +34,7 @@ public class ClassSessionController {
     }
 
     @PutMapping("/api/sessions/{id}")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<ClassSessionResponse> updateSession(
             @PathVariable Long id,
             @RequestBody ClassSessionRequest request,
@@ -43,7 +43,7 @@ public class ClassSessionController {
     }
 
     @PatchMapping("/api/sessions/{id}/cancel")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<ClassSessionResponse> cancelSession(
             @PathVariable Long id,
             @AuthenticationPrincipal Jwt jwt) {
@@ -51,11 +51,16 @@ public class ClassSessionController {
     }
 
     @PatchMapping("/api/sessions/{id}/complete")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<ClassSessionResponse> completeSession(
             @PathVariable Long id,
             @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(sessionService.completeSession(id, jwt.getSubject()));
+    }
+
+    @GetMapping("/api/sessions/{id}")
+    public ResponseEntity<ClassSessionResponse> getSession(@PathVariable Long id) {
+        return ResponseEntity.ok(sessionService.getSessionById(id));
     }
 
     @GetMapping("/api/sessions/upcoming")
@@ -70,11 +75,10 @@ public class ClassSessionController {
      */
     @PostMapping("/api/sessions/{id}/join")
     @PreAuthorize("hasRole('STUDENT')")
-    public ResponseEntity<Map<String, String>> joinSession(
+    public ResponseEntity<ClassSessionResponse> joinSession(
             @PathVariable Long id,
             @AuthenticationPrincipal Jwt jwt) {
-        String meetLink = sessionService.logStudentJoin(id, jwt.getSubject());
-        return ResponseEntity.ok(Map.of("meetLink", meetLink));
+        return ResponseEntity.ok(sessionService.logStudentJoin(id, jwt.getSubject()));
     }
 
     /**

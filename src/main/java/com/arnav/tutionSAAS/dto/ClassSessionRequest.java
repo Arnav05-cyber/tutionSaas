@@ -10,4 +10,5 @@ public class ClassSessionRequest {
     private LocalDateTime scheduledAt;
     private int durationMinutes;    // defaults to 60 in service if 0
     private String googleMeetLink;
+    private String platform;        // "EXTERNAL" or "INTERNAL"
 }

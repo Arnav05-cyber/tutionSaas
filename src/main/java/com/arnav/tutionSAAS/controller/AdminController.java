@@ -22,6 +22,7 @@ public class AdminController {
 
     @Autowired private AdminService adminService;
     @Autowired private UserRepo userRepo;
+    @Autowired private com.arnav.tutionSAAS.service.BatchService batchService;
 
     // ─── Teacher Invites (link-only, no email) ───
 
@@ -84,4 +85,24 @@ public class AdminController {
     public ResponseEntity<AdminService.DashboardStats> getDashboard() {
         return ResponseEntity.ok(adminService.getDashboardStats());
     }
+
+    // ─── Join Requests ───
+
+    @GetMapping("/join-requests")
+    public ResponseEntity<List<com.arnav.tutionSAAS.dto.JoinRequestResponse>> getJoinRequests() {
+        return ResponseEntity.ok(batchService.getPendingJoinRequests());
+    }
+
+    @PostMapping("/join-requests/{id}/approve")
+    public ResponseEntity<Void> approveJoinRequest(@PathVariable Long id) {
+        batchService.approveJoinRequest(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/join-requests/{id}/reject")
+    public ResponseEntity<Void> rejectJoinRequest(@PathVariable Long id) {
+        batchService.rejectJoinRequest(id);
+        return ResponseEntity.ok().build();
+    }
 }
+

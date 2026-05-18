@@ -15,4 +15,6 @@ public class ClassSessionResponse {
     private String status;
     private String batchName;
     private Long batchId;
+    private String platform;
+    private String internalRoomId;
 }

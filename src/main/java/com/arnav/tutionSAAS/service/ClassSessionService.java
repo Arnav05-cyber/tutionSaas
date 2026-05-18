@@ -25,16 +25,25 @@ public class ClassSessionService {
 
     @Transactional
     public ClassSessionResponse createSession(Long batchId, ClassSessionRequest request, String clerkId) {
+        if (request.getScheduledAt().isBefore(LocalDateTime.now().minusMinutes(15))) {
+            throw new RuntimeException("Cannot schedule a session in the past");
+        }
         Batch batch = batchRepo.findById(batchId)
                 .orElseThrow(() -> new RuntimeException("Batch not found"));
         validateTeacherOwnsBatch(batch, clerkId);
         ClassSession session = sessionMapper.toSessionEntity(request, batch);
+        if ("INTERNAL".equals(session.getPlatform())) {
+            session.setInternalRoomId("EDUSHA-Live-" + java.util.UUID.randomUUID().toString());
+        }
         ClassSession saved = sessionRepo.save(session);
         return sessionMapper.toSessionResponse(saved);
     }
 
     @Transactional
     public ClassSessionResponse updateSession(Long sessionId, ClassSessionRequest request, String clerkId) {
+        if (request.getScheduledAt() != null && request.getScheduledAt().isBefore(LocalDateTime.now().minusMinutes(15))) {
+            throw new RuntimeException("Cannot reschedule a session to the past");
+        }
         ClassSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Session not found"));
         validateTeacherOwnsBatch(session.getBatch(), clerkId);
@@ -75,6 +84,12 @@ public class ClassSessionService {
                 .stream().map(sessionMapper::toSessionResponse).collect(Collectors.toList());
     }
 
+    public ClassSessionResponse getSessionById(Long sessionId) {
+        ClassSession session = sessionRepo.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+        return sessionMapper.toSessionResponse(session);
+    }
+
     public List<ClassSessionResponse> getUpcomingSessionsForStudent(String clerkId) {
         User student = userRepo.findByClerkId(clerkId)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -94,7 +109,7 @@ public class ClassSessionService {
      * Logs the join event and returns the meeting link for the frontend to open.
      */
     @Transactional
-    public String logStudentJoin(Long sessionId, String clerkId) {
+    public ClassSessionResponse logStudentJoin(Long sessionId, String clerkId) {
         ClassSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Session not found"));
 
@@ -117,11 +132,11 @@ public class ClassSessionService {
             joinLogRepo.save(log);
         }
 
-        if (session.getGoogleMeetLink() == null || session.getGoogleMeetLink().isBlank()) {
+        if ("EXTERNAL".equals(session.getPlatform()) && (session.getGoogleMeetLink() == null || session.getGoogleMeetLink().isBlank())) {
             throw new RuntimeException("No meeting link has been set for this session yet");
         }
 
-        return session.getGoogleMeetLink();
+        return sessionMapper.toSessionResponse(session);
     }
 
     /**
@@ -145,9 +160,12 @@ public class ClassSessionService {
     }
 
     private void validateTeacherOwnsBatch(Batch batch, String clerkId) {
-        User teacher = userRepo.findByClerkId(clerkId)
-                .orElseThrow(() -> new RuntimeException("Teacher not found"));
-        if (!batch.getTeacher().getId().equals(teacher.getId())) {
+        User user = userRepo.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getRole() == Role.ADMIN) {
+            return;
+        }
+        if (batch.getTeacher() == null || !batch.getTeacher().getId().equals(user.getId())) {
             throw new RuntimeException("You can only manage sessions for your own batches");
         }
     }

@@ -7,6 +7,9 @@ import com.arnav.tutionSAAS.entity.Role;
 import com.arnav.tutionSAAS.entity.User;
 import com.arnav.tutionSAAS.repository.BatchRepo;
 import com.arnav.tutionSAAS.repository.UserRepo;
+import com.arnav.tutionSAAS.dto.JoinRequestResponse;
+import com.arnav.tutionSAAS.entity.BatchJoinRequest;
+import com.arnav.tutionSAAS.repository.BatchJoinRequestRepo;
 import com.arnav.tutionSAAS.util.BatchMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +26,9 @@ public class BatchService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private BatchJoinRequestRepo batchJoinRequestRepo;
 
     @Autowired
     private BatchMapper batchMapper;
@@ -128,5 +134,83 @@ public class BatchService {
                 .stream()
                 .map(batchMapper::toBatchResponse)
                 .collect(Collectors.toList());
+    }
+
+    // ─── JOIN REQUEST METHODS ───
+
+    public List<BatchResponse> getAvailableBatchesForStudent(String clerkId) {
+        User student = userRepo.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        if (student.getGrade() == null || student.getGrade().isEmpty()) {
+            return List.of();
+        }
+
+        List<Batch> activeBatches = batchRepo.findByIsActiveTrue();
+        return activeBatches.stream()
+                .filter(b -> b.getGrade().equals(student.getGrade()))
+                .filter(b -> !b.getStudents().contains(student))
+                .filter(b -> batchJoinRequestRepo.findByStudent_IdAndBatch_IdAndStatus(student.getId(), b.getId(), "PENDING").isEmpty())
+                .map(batchMapper::toBatchResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void requestJoinBatch(String clerkId, Long batchId) {
+        User student = userRepo.findByClerkId(clerkId)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        Batch batch = batchRepo.findById(batchId)
+                .orElseThrow(() -> new RuntimeException("Batch not found"));
+
+        if (batch.getStudents().contains(student)) {
+            throw new RuntimeException("Already enrolled in this batch");
+        }
+
+        if (batchJoinRequestRepo.findByStudent_IdAndBatch_IdAndStatus(student.getId(), batchId, "PENDING").isPresent()) {
+            throw new RuntimeException("Join request already pending");
+        }
+
+        BatchJoinRequest request = new BatchJoinRequest();
+        request.setStudent(student);
+        request.setBatch(batch);
+        batchJoinRequestRepo.save(request);
+    }
+
+    public List<JoinRequestResponse> getPendingJoinRequests() {
+        return batchJoinRequestRepo.findByStatus("PENDING").stream()
+                .map(req -> {
+                    JoinRequestResponse res = new JoinRequestResponse();
+                    res.setId(req.getId());
+                    res.setStudentId(req.getStudent().getId());
+                    res.setStudentName(req.getStudent().getFullName() != null ? req.getStudent().getFullName() : req.getStudent().getEmail());
+                    res.setStudentGrade(req.getStudent().getGrade());
+                    res.setBatchId(req.getBatch().getId());
+                    res.setBatchName(req.getBatch().getName());
+                    res.setBatchGrade(req.getBatch().getGrade());
+                    res.setStatus(req.getStatus());
+                    res.setCreatedAt(req.getCreatedAt().toString());
+                    return res;
+                }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void approveJoinRequest(Long requestId) {
+        BatchJoinRequest request = batchJoinRequestRepo.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+        
+        request.setStatus("APPROVED");
+        batchJoinRequestRepo.save(request);
+        
+        addStudentToBatch(request.getBatch().getId(), request.getStudent().getId());
+    }
+
+    @Transactional
+    public void rejectJoinRequest(Long requestId) {
+        BatchJoinRequest request = batchJoinRequestRepo.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+        
+        request.setStatus("REJECTED");
+        batchJoinRequestRepo.save(request);
     }
 }

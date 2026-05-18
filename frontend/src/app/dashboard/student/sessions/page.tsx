@@ -6,7 +6,7 @@ import api from '@/lib/api';
 
 interface Session {
   id: number;
-  topic: string;
+  title: string;
   scheduledAt: string;
   status: string;
   googleMeetLink: string;
@@ -33,9 +33,13 @@ export default function StudentSessionsPage() {
     try {
       const token = await getToken();
       const result = await api.post(`/api/sessions/${sessionId}/join`, {}, token);
-      // Open meet link in new tab
-      if (result.meetLink) {
-        window.open(result.meetLink, '_blank');
+      
+      if (result.platform === 'INTERNAL') {
+        window.open(`/dashboard/live/${result.id}`, '_blank');
+      } else if (result.googleMeetLink) {
+        window.open(result.googleMeetLink, '_blank');
+      } else {
+        alert('Meeting link not available');
       }
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to join session');
@@ -60,7 +64,7 @@ export default function StudentSessionsPage() {
           {sessions.map(s => (
             <div key={s.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 500 }}>{s.topic || 'Untitled Session'}</h3>
+                <h3 style={{ fontSize: '15px', fontWeight: 500 }}>{s.title || 'Untitled Session'}</h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                   {new Date(s.scheduledAt).toLocaleString()}
                 </p>
