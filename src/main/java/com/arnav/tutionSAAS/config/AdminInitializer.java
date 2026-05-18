@@ -82,7 +82,14 @@ public class AdminInitializer implements CommandLineRunner {
 
         // 3. Ensure the user exists in our database with ROLE_ADMIN
         if (clerkId != null) {
+            // First check by clerkId
             User existing = userRepo.findByClerkId(clerkId).orElse(null);
+
+            // If not found by clerkId, check by email (handles dev→prod Clerk migration)
+            if (existing == null) {
+                existing = userRepo.findByEmail(targetEmail).orElse(null);
+            }
+
             if (existing == null) {
                 User admin = new User();
                 admin.setClerkId(clerkId);
@@ -93,10 +100,20 @@ public class AdminInitializer implements CommandLineRunner {
                 userRepo.save(admin);
                 System.out.println("Saved Admin user to local database.");
             } else {
+                // Update clerkId if it changed (dev→prod migration)
+                boolean updated = false;
+                if (!clerkId.equals(existing.getClerkId())) {
+                    existing.setClerkId(clerkId);
+                    updated = true;
+                    System.out.println("Updated admin clerkId for production environment.");
+                }
                 if (existing.getRole() != Role.ADMIN) {
                     existing.setRole(Role.ADMIN);
+                    updated = true;
+                }
+                if (updated) {
                     userRepo.save(existing);
-                    System.out.println("Updated existing user to ADMIN role.");
+                    System.out.println("Updated existing admin user.");
                 }
             }
         }
