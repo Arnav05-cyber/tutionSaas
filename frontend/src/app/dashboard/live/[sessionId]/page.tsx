@@ -98,7 +98,8 @@ export default function LiveClassPage() {
             SHOW_WATERMARK_FOR_GUESTS: false,
           }}
           userInfo={{
-            displayName: user.fullName || user.username || 'Student'
+            displayName: user.fullName || user.username || 'Student',
+            email: user.primaryEmailAddress?.emailAddress || 'student@example.com'
           }}
           getIFrameRef={(iframeRef) => {
             iframeRef.style.height = '100%';
