@@ -138,6 +138,77 @@ export default function AdminDashboard() {
           </table>
         </div>
       )}
+
+      {/* ─── System Management (Force Delete) ─── */}
+      <h2 style={{ fontSize: '18px', fontWeight: 600, marginTop: '32px', marginBottom: '16px', color: 'var(--danger)' }}>System Management</h2>
+      <div className="card">
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '16px' }}>
+          Use this tool to manually remove "ghost" users from the database if they were deleted from Clerk but not from here.
+        </p>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <UserDeleteSection role="TEACHER" title="Teachers" />
+          <UserDeleteSection role="STUDENT" title="Students" />
+          <UserDeleteSection role="PARENT" title="Parents" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UserDeleteSection({ role, title }: { role: string, title: string }) {
+  const { getToken } = useAuth();
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  async function loadUsers() {
+    try {
+      const token = await getToken();
+      const data = await api.get(`/api/admin/users?role=${role}`, token);
+      setUsers(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { loadUsers(); }, [role]);
+
+  async function forceDelete(id: number, name: string) {
+    if (!confirm(`Are you sure you want to FORCE DELETE ${name}? This will permanently remove them and all their data from the database.`)) return;
+    try {
+      const token = await getToken();
+      await api.delete(`/api/admin/users/${id}`, token);
+      await loadUsers();
+      alert('User deleted successfully');
+    } catch (err) {
+      alert('Failed to delete user');
+      console.error(err);
+    }
+  }
+
+  if (loading) return <div style={{ flex: 1, minWidth: '250px' }}><p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>Loading {title}...</p></div>;
+
+  return (
+    <div style={{ flex: 1, minWidth: '250px', border: '1px solid var(--border)', borderRadius: '8px', padding: '16px' }}>
+      <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>{title} ({users.length})</h3>
+      {users.length === 0 ? (
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>No {title.toLowerCase()} found.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+          {users.map(u => (
+            <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px', background: 'var(--surface-hover)', borderRadius: '6px' }}>
+              <div>
+                <p style={{ fontSize: '13px', fontWeight: 500 }}>{u.fullName || u.email}</p>
+                {u.grade && <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Grade {u.grade}</p>}
+              </div>
+              <button className="btn btn-sm" style={{ color: 'var(--danger)', borderColor: 'var(--danger)', padding: '4px 8px' }} onClick={() => forceDelete(u.id, u.fullName || u.email)}>
+                Delete
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

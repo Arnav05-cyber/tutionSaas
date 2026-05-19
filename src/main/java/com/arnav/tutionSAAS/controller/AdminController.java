@@ -51,6 +51,14 @@ public class AdminController {
         return ResponseEntity.ok(result);
     }
 
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> forceDeleteUser(@PathVariable Long id) {
+        User user = userRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userService.deleteUserByClerkId(user.getClerkId());
+        return ResponseEntity.noContent().build();
+    }
+
     // ─── Fee Management ───
 
     @GetMapping("/fees")
