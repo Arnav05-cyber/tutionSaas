@@ -68,6 +68,18 @@ public class ClassSessionService {
     }
 
     @Transactional
+    public void deleteSession(Long sessionId, String clerkId) {
+        ClassSession session = sessionRepo.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found"));
+        validateTeacherOwnsBatch(session.getBatch(), clerkId);
+        
+        // Also delete associated join logs before deleting the session
+        joinLogRepo.deleteAll(joinLogRepo.findBySession_Id(sessionId));
+        
+        sessionRepo.delete(session);
+    }
+
+    @Transactional
     public ClassSessionResponse completeSession(Long sessionId, String clerkId) {
         ClassSession session = sessionRepo.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Session not found"));

@@ -50,6 +50,15 @@ public class ClassSessionController {
         return ResponseEntity.ok(sessionService.cancelSession(id, jwt.getSubject()));
     }
 
+    @DeleteMapping("/api/sessions/{id}")
+    @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
+    public ResponseEntity<Void> deleteSession(
+            @PathVariable Long id,
+            @AuthenticationPrincipal Jwt jwt) {
+        sessionService.deleteSession(id, jwt.getSubject());
+        return ResponseEntity.noContent().build();
+    }
+
     @PatchMapping("/api/sessions/{id}/complete")
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
     public ResponseEntity<ClassSessionResponse> completeSession(

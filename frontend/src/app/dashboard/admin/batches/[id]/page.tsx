@@ -180,6 +180,28 @@ export default function BatchDetailPage() {
     }
   }
 
+  async function handleCancelSession(sessionId: number) {
+    if (!confirm('Are you sure you want to cancel this session?')) return;
+    try {
+      const token = await getToken();
+      const result = await api.patch(`/api/sessions/${sessionId}/cancel`, {}, token);
+      setSessions(sessions.map(s => s.id === sessionId ? result : s));
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to cancel session');
+    }
+  }
+
+  async function handleDeleteSession(sessionId: number) {
+    if (!confirm('Are you sure you want to permanently delete this session? This action cannot be undone.')) return;
+    try {
+      const token = await getToken();
+      await api.delete(`/api/sessions/${sessionId}`, token);
+      setSessions(sessions.filter(s => s.id !== sessionId));
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to delete session');
+    }
+  }
+
   async function loadJoinLogs(sessionId: number) {
     if (expandedSession === sessionId) {
       setExpandedSession(null);
@@ -345,13 +367,21 @@ export default function BatchDetailPage() {
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Link active at start time</span>
                     )}
                     {!active && !past && s.status === 'SCHEDULED' && (
-                      <button className="btn btn-sm" onClick={() => openReschedule(s)}>
-                        Reschedule
-                      </button>
+                      <>
+                        <button className="btn btn-sm" onClick={() => openReschedule(s)}>
+                          Reschedule
+                        </button>
+                        <button className="btn btn-sm btn-danger" onClick={() => handleCancelSession(s.id)}>
+                          Cancel
+                        </button>
+                      </>
                     )}
                     <span className={`badge ${s.status === 'COMPLETED' ? 'badge-success' : s.status === 'CANCELLED' ? 'badge-danger' : 'badge-accent'}`}>
                       {s.status}
                     </span>
+                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteSession(s.id)}>
+                      Delete
+                    </button>
                     <button className="btn btn-sm" onClick={() => loadJoinLogs(s.id)}>
                       {expandedSession === s.id ? 'Hide Joins' : 'View Joins'}
                     </button>
