@@ -285,7 +285,7 @@ export default function BatchDetailPage() {
               <div className="form-group">
                 <label className="input-label">Platform</label>
                 <select className="input" value={sessionPlatform} onChange={e => setSessionPlatform(e.target.value)}>
-                  {/* <option value="INTERNAL">Hosted Internally (Jitsi Meet)</option> */}
+                  <option value="INTERNAL">Hosted Internally (Jitsi Meet)</option>
                   <option value="EXTERNAL">External Link (Zoom, Google Meet, etc.)</option>
                 </select>
               </div>
