@@ -10,5 +10,4 @@ public class OnboardingRequest {
     private String grade; // For students: "9", "10", etc.
     private String linkedinUrl; // For teachers
     private String inviteToken; // Required when role=TEACHER
-    private String email; // Backup email if not present in JWT
 }

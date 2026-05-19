@@ -26,9 +26,8 @@ public class UserController {
             @AuthenticationPrincipal Jwt jwt,
             @RequestBody OnboardingRequest request) {
         String clerkId = jwt.getSubject();
-        String jwtEmail = jwt.getClaimAsString("email");
-        String finalEmail = (jwtEmail != null && !jwtEmail.isBlank()) ? jwtEmail : request.getEmail();
-        User user = userService.onboardUser(clerkId, finalEmail, request);
+        String email = jwt.getClaimAsString("email");
+        User user = userService.onboardUser(clerkId, email, request);
         return ResponseEntity.ok(toResponse(user));
     }
 
