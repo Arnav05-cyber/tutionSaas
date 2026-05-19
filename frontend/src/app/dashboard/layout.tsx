@@ -20,6 +20,7 @@ const NAV: Record<string, { label: string; href: string }[]> = {
     { label: 'Invites', href: '/dashboard/admin/invites' },
     { label: 'Fee Status', href: '/dashboard/admin/fees' },
     { label: 'Batches', href: '/dashboard/admin/batches' },
+    { label: 'Student Queries', href: '/dashboard/admin/queries' },
   ],
   TEACHER: [
     { label: 'Dashboard', href: '/dashboard/teacher' },
@@ -34,6 +35,7 @@ const NAV: Record<string, { label: string; href: string }[]> = {
     { label: 'Attendance', href: '/dashboard/student/attendance' },
     { label: 'Fees', href: '/dashboard/student/fees' },
     { label: 'Parent Link', href: '/dashboard/student/link-code' },
+    { label: 'Help & Queries', href: '/dashboard/student/queries' },
   ],
   PARENT: [
     { label: 'Dashboard', href: '/dashboard/parent' },
