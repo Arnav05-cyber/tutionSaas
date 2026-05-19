@@ -234,24 +234,29 @@ export default function BatchDetailPage() {
 
   if (loading) return <div className="loading-page"><div className="spinner" /></div>;
 
+  const sortedSchedule = [...(batch?.schedule || [])].sort((a, b) => {
+    const getSortOrder = (day: string) => day === 'SUNDAY' ? 7 : DAY_INDEX[day];
+    return getSortOrder(a.dayOfWeek) - getSortOrder(b.dayOfWeek);
+  });
+
   return (
     <div>
       <div className="page-header">
         <h1 className="page-title">{batch?.name || 'Batch'}</h1>
         <p className="page-subtitle">
           Grade {batch?.grade}
-          {batch?.schedule && batch.schedule.length > 0 && (
-            <> — {batch.schedule.map(s => `${DAY_SHORT[s.dayOfWeek]} ${formatTime(s.startTime)} (${s.durationMinutes}min)`).join(', ')}</>
+          {sortedSchedule.length > 0 && (
+            <> — {sortedSchedule.map(s => `${DAY_SHORT[s.dayOfWeek]} ${formatTime(s.startTime)} (${s.durationMinutes}min)`).join(', ')}</>
           )}
         </p>
       </div>
 
       {/* ─── Create Session from Schedule Slots ─── */}
-      {batch?.schedule && batch.schedule.length > 0 && (
+      {sortedSchedule.length > 0 && (
         <div className="card" style={{ marginBottom: '16px' }}>
           <p style={{ fontSize: '14px', fontWeight: 500, marginBottom: '10px' }}>Create a session for an upcoming class:</p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {batch.schedule.map((s, i) => (
+            {sortedSchedule.map((s, i) => (
               <button key={i} className="btn btn-primary" onClick={() => openCreateForSlot(s)}
                 style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '10px 16px', lineHeight: 1.3 }}>
                 <span style={{ fontWeight: 600 }}>{DAY_SHORT[s.dayOfWeek]}</span>
