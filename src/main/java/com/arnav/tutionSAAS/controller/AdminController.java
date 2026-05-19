@@ -23,6 +23,7 @@ public class AdminController {
     @Autowired private AdminService adminService;
     @Autowired private UserRepo userRepo;
     @Autowired private com.arnav.tutionSAAS.service.BatchService batchService;
+    @Autowired private com.arnav.tutionSAAS.service.UserService userService;
 
     // ─── Teacher Invites (link-only, no email) ───
 
