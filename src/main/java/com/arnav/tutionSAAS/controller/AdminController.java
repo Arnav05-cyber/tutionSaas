@@ -79,6 +79,14 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
+    // ─── Batch Deletion ───
+
+    @DeleteMapping("/batches/{id}")
+    public ResponseEntity<Void> deleteBatch(@PathVariable Long id) {
+        batchService.deleteBatch(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // ─── Dashboard ───
 
     @GetMapping("/dashboard")

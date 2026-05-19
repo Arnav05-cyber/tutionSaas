@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Random;
 
 @Service
@@ -19,6 +20,13 @@ public class UserService {
     @Autowired private ParentProfileRepo parentProfileRepo;
     @Autowired private TeacherInviteRepo teacherInviteRepo;
     @Autowired private UserMapper userMapper;
+    @Autowired private AttendanceRepo attendanceRepo;
+    @Autowired private SessionJoinLogRepo sessionJoinLogRepo;
+    @Autowired private BatchJoinRequestRepo batchJoinRequestRepo;
+    @Autowired private PaymentHistoryRepo paymentHistoryRepo;
+    @Autowired private ResourceRepo resourceRepo;
+    @Autowired private BatchRepo batchRepo;
+    @Autowired private StorageService storageService;
 
     @Transactional
     public User onboardUser(String clerkId, String email, OnboardingRequest request) {
@@ -55,6 +63,81 @@ public class UserService {
         }
 
         return savedUser;
+    }
+
+    /**
+     * Deletes a user and ALL associated data from the database.
+     * Called when Clerk fires a user.deleted webhook event.
+     *
+     * Deletion order matters due to foreign key constraints:
+     * 1. Attendance records (references user + session)
+     * 2. Session join logs (references user + session)
+     * 3. Batch join requests (references user + batch)
+     * 4. Payment history (references user)
+     * 5. Resources uploaded by this user (references user + batch)
+     * 6. Remove user from batch_students join table
+     * 7. Role-specific profile (teacher/student/parent)
+     * 8. The user record itself
+     */
+    @Transactional
+    public void deleteUserByClerkId(String clerkId) {
+        User user = userRepository.findByClerkId(clerkId).orElse(null);
+        if (user == null) {
+            System.out.println("User not found for clerkId: " + clerkId + " — skipping deletion");
+            return;
+        }
+
+        Long userId = user.getId();
+        System.out.println("Deleting user " + userId + " (" + user.getEmail() + "), role: " + user.getRole());
+
+        // 1. Delete attendance records where this user is the student
+        attendanceRepo.deleteByStudent_Id(userId);
+
+        // 2. Delete session join logs where this user is the student
+        sessionJoinLogRepo.deleteByStudent_Id(userId);
+
+        // 3. Delete batch join requests where this user is the student
+        batchJoinRequestRepo.deleteByStudent_Id(userId);
+
+        // 4. Delete payment history
+        paymentHistoryRepo.deleteByStudent_Id(userId);
+
+        // 5. Delete resources uploaded by this user (also clean up storage files)
+        List<Resource> resources = resourceRepo.findByUploadedBy_Id(userId);
+        for (Resource r : resources) {
+            try {
+                storageService.delete(r.getStorageKey());
+            } catch (Exception e) {
+                System.err.println("Failed to delete storage file: " + r.getStorageKey() + " — " + e.getMessage());
+            }
+        }
+        resourceRepo.deleteAll(resources);
+
+        // 6. Remove user from all batch_students join tables
+        List<Batch> batches = batchRepo.findByStudents_Id(userId);
+        for (Batch batch : batches) {
+            batch.getStudents().removeIf(s -> s.getId().equals(userId));
+            batchRepo.save(batch);
+        }
+
+        // 7. Delete role-specific profile
+        switch (user.getRole()) {
+            case TEACHER:
+                teacherRepository.findById(userId).ifPresent(teacherRepository::delete);
+                break;
+            case STUDENT:
+                studentRepository.findById(userId).ifPresent(studentRepository::delete);
+                break;
+            case PARENT:
+                parentProfileRepo.findById(userId).ifPresent(parentProfileRepo::delete);
+                break;
+            default:
+                break;
+        }
+
+        // 8. Delete the user record
+        userRepository.delete(user);
+        System.out.println("User " + userId + " deleted successfully");
     }
 
     /**

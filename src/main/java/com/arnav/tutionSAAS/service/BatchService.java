@@ -3,6 +3,7 @@ package com.arnav.tutionSAAS.service;
 import com.arnav.tutionSAAS.dto.BatchRequest;
 import com.arnav.tutionSAAS.dto.BatchResponse;
 import com.arnav.tutionSAAS.entity.Batch;
+import com.arnav.tutionSAAS.entity.Resource;
 import com.arnav.tutionSAAS.entity.Role;
 import com.arnav.tutionSAAS.entity.User;
 import com.arnav.tutionSAAS.repository.BatchRepo;
@@ -10,6 +11,11 @@ import com.arnav.tutionSAAS.repository.UserRepo;
 import com.arnav.tutionSAAS.dto.JoinRequestResponse;
 import com.arnav.tutionSAAS.entity.BatchJoinRequest;
 import com.arnav.tutionSAAS.repository.BatchJoinRequestRepo;
+import com.arnav.tutionSAAS.repository.AttendanceRepo;
+import com.arnav.tutionSAAS.repository.SessionJoinLogRepo;
+import com.arnav.tutionSAAS.repository.ClassSessionRepo;
+import com.arnav.tutionSAAS.repository.ResourceRepo;
+import com.arnav.tutionSAAS.repository.ScheduleSlotRepo;
 import com.arnav.tutionSAAS.util.BatchMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,6 +38,24 @@ public class BatchService {
 
     @Autowired
     private BatchMapper batchMapper;
+
+    @Autowired
+    private AttendanceRepo attendanceRepo;
+
+    @Autowired
+    private SessionJoinLogRepo sessionJoinLogRepo;
+
+    @Autowired
+    private ClassSessionRepo classSessionRepo;
+
+    @Autowired
+    private ResourceRepo resourceRepo;
+
+    @Autowired
+    private ScheduleSlotRepo scheduleSlotRepo;
+
+    @Autowired
+    private StorageService storageService;
 
     /**
      * Admin creates a batch and assigns a teacher by ID.
@@ -212,5 +236,63 @@ public class BatchService {
         
         request.setStatus("REJECTED");
         batchJoinRequestRepo.save(request);
+    }
+
+    // ─── BATCH DELETION ───
+
+    /**
+     * Admin deletes a batch and ALL associated data.
+     *
+     * Deletion order (FK-safe):
+     * 1. Attendance records for sessions in this batch
+     * 2. Session join logs for sessions in this batch
+     * 3. Class sessions belonging to this batch
+     * 4. Batch join requests for this batch
+     * 5. Resources in this batch (also delete storage files)
+     * 6. Schedule slots (handled by cascade, but explicit for safety)
+     * 7. Clear batch_students join table
+     * 8. The batch itself
+     */
+    @Transactional
+    public void deleteBatch(Long batchId) {
+        Batch batch = batchRepo.findById(batchId)
+                .orElseThrow(() -> new RuntimeException("Batch not found"));
+
+        System.out.println("Deleting batch " + batchId + " (" + batch.getName() + ")");
+
+        // 1. Delete attendance records for all sessions in this batch
+        attendanceRepo.deleteBySession_Batch_Id(batchId);
+
+        // 2. Delete session join logs for all sessions in this batch
+        sessionJoinLogRepo.deleteBySession_Batch_Id(batchId);
+
+        // 3. Delete class sessions
+        classSessionRepo.deleteByBatch_Id(batchId);
+
+        // 4. Delete batch join requests
+        batchJoinRequestRepo.deleteByBatch_Id(batchId);
+
+        // 5. Delete resources (with storage cleanup)
+        List<Resource> resources = resourceRepo.findByBatch_Id(batchId);
+        for (Resource r : resources) {
+            try {
+                storageService.delete(r.getStorageKey());
+            } catch (Exception e) {
+                System.err.println("Failed to delete storage file: " + r.getStorageKey() + " — " + e.getMessage());
+            }
+        }
+        resourceRepo.deleteAll(resources);
+
+        // 6. Schedule slots are cascade-deleted via Batch entity,
+        //    but clear them explicitly to be safe
+        scheduleSlotRepo.deleteAll(scheduleSlotRepo.findByBatch_Id(batchId));
+
+        // 7. Clear student associations
+        batch.getStudents().clear();
+        batchRepo.save(batch);
+
+        // 8. Delete the batch
+        batchRepo.delete(batch);
+        System.out.println("Batch " + batchId + " deleted successfully");
     }
 }

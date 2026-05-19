@@ -19,4 +19,8 @@ public interface AttendanceRepo extends JpaRepository<AttendanceRecord, Long> {
 
     // Total sessions a student was marked in for a batch
     long countByStudent_IdAndSession_Batch_Id(Long studentId, Long batchId);
+
+    void deleteByStudent_Id(Long studentId);
+
+    void deleteBySession_Batch_Id(Long batchId);
 }

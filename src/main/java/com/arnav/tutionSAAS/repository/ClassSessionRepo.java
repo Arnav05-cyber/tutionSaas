@@ -29,4 +29,8 @@ public interface ClassSessionRepo extends JpaRepository<ClassSession, Long> {
     List<ClassSession> findByBatch_IdInAndStatusAndScheduledAtAfterOrderByScheduledAtAsc(
         List<Long> batchIds, SessionStatus status, LocalDateTime after
     );
+
+    List<ClassSession> findByBatch_Id(Long batchId);
+
+    void deleteByBatch_Id(Long batchId);
 }

@@ -11,4 +11,8 @@ import java.util.Optional;
 public interface BatchJoinRequestRepo extends JpaRepository<BatchJoinRequest, Long> {
     List<BatchJoinRequest> findByStatus(String status);
     Optional<BatchJoinRequest> findByStudent_IdAndBatch_IdAndStatus(Long studentId, Long batchId, String status);
+
+    void deleteByStudent_Id(Long studentId);
+
+    void deleteByBatch_Id(Long batchId);
 }

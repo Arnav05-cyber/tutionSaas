@@ -12,4 +12,8 @@ public interface SessionJoinLogRepo extends JpaRepository<SessionJoinLog, Long> 
     List<SessionJoinLog> findBySession_Id(Long sessionId);
 
     boolean existsBySession_IdAndStudent_Id(Long sessionId, Long studentId);
+
+    void deleteByStudent_Id(Long studentId);
+
+    void deleteBySession_Batch_Id(Long batchId);
 }

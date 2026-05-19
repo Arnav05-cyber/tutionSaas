@@ -162,6 +162,19 @@ export default function AdminBatchesPage() {
     await loadAll();
   }
 
+  async function handleDeleteBatch(batchId: number, batchName: string) {
+    if (!confirm(`Are you sure you want to delete "${batchName}"? This will permanently remove all sessions, attendance records, resources, and other data associated with this batch. This action cannot be undone.`)) return;
+    try {
+      const token = await getToken();
+      await api.delete(`/api/admin/batches/${batchId}`, token);
+      setExpandedId(null);
+      await loadAll();
+    } catch (err) {
+      alert('Failed to delete batch');
+      console.error(err);
+    }
+  }
+
   function updateDaySlot(day: string, field: string, value: string | number | boolean) {
     setDaySlots(prev => ({
       ...prev,
@@ -364,6 +377,13 @@ export default function AdminBatchesPage() {
                       Set Fee
                     </button>
                   )}
+                  <button
+                    className="btn btn-sm"
+                    style={{ color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                    onClick={e => { e.stopPropagation(); handleDeleteBatch(b.id, b.name); }}
+                  >
+                    Delete Batch
+                  </button>
                 </div>
               )}
             </div>

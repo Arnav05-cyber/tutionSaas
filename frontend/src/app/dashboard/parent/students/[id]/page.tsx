@@ -119,7 +119,7 @@ export default function ParentStudentDetailPage() {
       
       // 2. Initialize Razorpay options
       const options = {
-        key: 'rzp_test_Sq5CvoRp7QVZ7n', // Provided test key
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
         amount: orderData.amount * 100, // paise
         currency: orderData.currency,
         name: 'EDUSHA',
