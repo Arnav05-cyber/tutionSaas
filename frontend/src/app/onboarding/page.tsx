@@ -18,6 +18,7 @@ function OnboardingForm() {
     grade: '',
     linkedinUrl: '',
     inviteToken: '',
+    email: '',
   });
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
@@ -116,6 +117,17 @@ function OnboardingForm() {
               required
               value={form.fullName}
               onChange={e => setForm({ ...form, fullName: e.target.value })}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="input-label">Email Address</label>
+            <input
+              className="input"
+              type="email"
+              required
+              value={form.email}
+              onChange={e => setForm({ ...form, email: e.target.value })}
             />
           </div>
 

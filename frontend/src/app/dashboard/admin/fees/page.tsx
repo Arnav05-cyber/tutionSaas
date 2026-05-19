@@ -80,7 +80,7 @@ export default function FeesPage() {
                     <div style={{ fontWeight: 500 }}>{s.studentName}</div>
                     {s.studentPhone && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>📞 {s.studentPhone}</div>}
                   </td>
-                  <td style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{s.email}</td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{s.email || '—'}</td>
                   <td>
                     {s.parentPhone || s.parentEmail ? (
                       <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
