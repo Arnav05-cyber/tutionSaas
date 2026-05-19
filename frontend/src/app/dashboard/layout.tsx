@@ -47,6 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -68,6 +69,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
     load();
   }, [isLoaded, getToken, router]);
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   if (loading) {
     return <div className="loading-page"><div className="spinner" /></div>;
@@ -92,7 +98,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="layout-wrap">
-      <aside className="sidebar">
+      {/* Mobile top bar */}
+      <div className="mobile-topbar">
+        <button className="hamburger-btn" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Toggle menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <span className="mobile-brand">EDUSHA</span>
+        <UserButton />
+      </div>
+
+      {/* Sidebar overlay for mobile */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-brand" style={{ letterSpacing: '1px' }}>EDUSHA</div>
         <nav className="sidebar-nav">
           {links.map(link => (
@@ -100,6 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               key={link.href}
               href={link.href}
               className={`sidebar-link ${pathname === link.href ? 'active' : ''}`}
+              onClick={() => setSidebarOpen(false)}
             >
               {link.label}
             </Link>

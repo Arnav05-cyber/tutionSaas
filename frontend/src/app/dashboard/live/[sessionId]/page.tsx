@@ -3,7 +3,6 @@
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { JitsiMeeting } from '@jitsi/react-sdk';
 import api from '@/lib/api';
 
 interface SessionInfo {
@@ -24,12 +23,12 @@ export default function LiveClassPage() {
 
   const [loading, setLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
         const token = await getToken();
-        // Get the session details to get the internalRoomId
         const data = await api.get(`/api/sessions/${id}`, token);
         
         if (data.platform !== 'INTERNAL') {
@@ -51,6 +50,17 @@ export default function LiveClassPage() {
     }
   }, [id, getToken, router]);
 
+  function joinJitsiRoom() {
+    if (!sessionInfo?.internalRoomId || !user) return;
+    setRedirecting(true);
+
+    const displayName = encodeURIComponent(user.fullName || user.username || 'Participant');
+    const roomId = sessionInfo.internalRoomId.replace(/[^a-zA-Z0-9-_]/g, '');
+    const jitsiUrl = `https://meet.jit.si/${roomId}#userInfo.displayName="${displayName}"&config.startWithAudioMuted=true&config.startWithVideoMuted=true&config.prejoinConfig.enabled=false`;
+    
+    window.location.href = jitsiUrl;
+  }
+
   if (loading || !user) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
@@ -70,42 +80,36 @@ export default function LiveClassPage() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100vw', margin: 0, padding: 0 }}>
-      <div style={{ background: 'var(--surface)', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)' }}>
-        <div>
-          <h1 style={{ fontSize: '18px', fontWeight: 600, margin: 0 }}>{sessionInfo.title || 'Live Class'}</h1>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>{sessionInfo.batchName}</p>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg)', padding: '24px' }}>
+      <div className="card" style={{ maxWidth: '500px', width: '100%', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '8px' }}>{sessionInfo.title || 'Live Class'}</h1>
+        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>{sessionInfo.batchName}</p>
+
+        <div style={{ background: 'var(--bg)', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '12px' }}>
+            Your class will open in a new Jitsi Meet window.
+          </p>
+          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+            <strong>Teachers:</strong> Log in with Google when prompted to become the moderator. Students can join once the teacher is in.
+          </p>
         </div>
-        <button className="btn" onClick={() => router.back()}>
-          Leave Class
+
+        <button 
+          className="btn btn-primary" 
+          style={{ width: '100%', padding: '14px', fontSize: '16px', fontWeight: 600 }}
+          onClick={joinJitsiRoom}
+          disabled={redirecting}
+        >
+          {redirecting ? 'Opening Jitsi...' : '🎥 Join Live Class'}
         </button>
-      </div>
-      
-      <div style={{ flex: 1, position: 'relative' }}>
-        <JitsiMeeting
-          domain="meet.jit.si"
-          roomName={sessionInfo.internalRoomId}
-          configOverwrite={{
-            startWithAudioMuted: true,
-            startWithVideoMuted: true,
-            disableModeratorIndicator: true,
-            startScreenSharing: false,
-            enableEmailInStats: false
-          }}
-          interfaceConfigOverwrite={{
-            DISABLE_JOIN_LEAVE_NOTIFICATIONS: true,
-            SHOW_JITSI_WATERMARK: false,
-            SHOW_WATERMARK_FOR_GUESTS: false,
-          }}
-          userInfo={{
-            displayName: user.fullName || user.username || 'Student',
-            email: user.primaryEmailAddress?.emailAddress || 'student@example.com'
-          }}
-          getIFrameRef={(iframeRef) => {
-            iframeRef.style.height = '100%';
-            iframeRef.style.width = '100%';
-          }}
-        />
+
+        <button 
+          className="btn" 
+          style={{ width: '100%', marginTop: '12px' }}
+          onClick={() => router.back()}
+        >
+          ← Go Back
+        </button>
       </div>
     </div>
   );

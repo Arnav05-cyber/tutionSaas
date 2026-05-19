@@ -243,7 +243,7 @@ export default function BatchDetailPage() {
       {/* ─── Create Session Modal ─── */}
       {showCreate && selectedSlot && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="card" style={{ width: '440px', maxWidth: '95%' }}>
+          <div className="card" style={{ width: '440px', maxWidth: '95vw' }}>
             <h2 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 600 }}>Create Session</h2>
 
             {/* Show locked schedule info */}
@@ -317,14 +317,14 @@ export default function BatchDetailPage() {
 
             return (
               <div key={s.id} className="card" style={active ? { borderLeft: '3px solid var(--success)' } : {}}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ minWidth: 0, flex: '1 1 200px' }}>
                     <h3 style={{ fontSize: '15px', fontWeight: 500 }}>{s.title || 'Untitled Session'}</h3>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                       {new Date(s.scheduledAt).toLocaleString()} — {s.durationMinutes} min
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                     {active && (
                       <span className="badge badge-success">● LIVE</span>
                     )}
@@ -405,7 +405,7 @@ export default function BatchDetailPage() {
       {/* ─── Reschedule Modal ─── */}
       {showReschedule !== null && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="card" style={{ width: '400px', maxWidth: '95%' }}>
+          <div className="card" style={{ width: '400px', maxWidth: '95vw' }}>
             <h2 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 600 }}>Reschedule Session</h2>
             <form onSubmit={e => handleRescheduleSubmit(e, sessions.find(s => s.id === showReschedule)!)}>
               <div style={{ display: 'flex', gap: '8px' }}>

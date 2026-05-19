@@ -1,7 +1,15 @@
 import { ClerkProvider } from '@clerk/nextjs';
 import './globals.css';
 
-export const metadata = {
+import type { Metadata, Viewport } from 'next';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
+export const metadata: Metadata = {
   title: 'EDUSHA — Education Management',
   description: 'Manage batches, sessions, attendance, and fees for EDUSHA.',
 };
