@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum ResourceType {
+  NOTES
+  WPP
+  TEST
+}
+
+enum QueryStatus {
+  OPEN
+  RESOLVED
+}
+
+model User {
+  id                 Int      @id @default(autoincrement())
+  clerkId            String   @unique
+  fullName           String?
+  email              String?  @unique
+  phoneNumber        String?
+  role               Role?
+  grade              String?
+  blocked            Boolean  @default(false)
+  onboardingComplete Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  teacherProfile  TeacherProfile?
+  studentProfile  StudentProfile?
+  parentProfile   ParentProfile?  @relation("UserParentProfile")
+  linkedByParents ParentProfile[] @relation("ParentLinkedStudents")
+
+  taughtBatches   Batch[] @relation("BatchTeacher")
+  enrolledBatches Batch[] @relation("BatchStudents")
+
+  attendanceRecords AttendanceRecord[]
+  sessionJoinLogs   SessionJoinLog[]
+  batchJoinRequests BatchJoinRequest[]
+  paymentHistory    PaymentHistory[]
+  uploadedResources Resource[]
+  queries           StudentQuery[]
+}
+
+model TeacherProfile {
+  id                Int     @id
+  user              User    @relation(fields: [id], references: [id], onDelete: Cascade)
+  bio               String?
+  qualification     String?
+  linkedinProfile   String?
+  upiId             String?
+  bankAccountNumber String?
+  payPerClass       Float   @default(0)
+}
+
+model StudentProfile {
+  id                      Int     @id
+  user                    User    @relation(fields: [id], references: [id], onDelete: Cascade)
+  parentLinkCode          String? @unique
+  feesPaidForCurrentMonth Boolean @default(false)
+}
+
+model ParentProfile {
+  id             Int    @id
+  user           User   @relation("UserParentProfile", fields: [id], references: [id], onDelete: Cascade)
+  linkedStudents User[] @relation("ParentLinkedStudents")
+}
+
+model Batch {
+  id         Int      @id @default(autoincrement())
+  name       String
+  grade      String
+  teacherId  Int
+  teacher    User     @relation("BatchTeacher", fields: [teacherId], references: [id])
+  students   User[]   @relation("BatchStudents")
+  monthlyFee Float    @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  scheduleSlots ScheduleSlot[]
+  sessions      ClassSession[]
+  joinRequests  BatchJoinRequest[]
+  resources     Resource[]
+}
+
+model ScheduleSlot {
+  id              Int    @id @default(autoincrement())
+  batchId         Int
+  batch           Batch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  dayOfWeek       String
+  startTime       String
+  durationMinutes Int    @default(60)
+}
+
+model ClassSession {
+  id              Int           @id @default(autoincrement())
+  batchId         Int
+  batch           Batch         @relation(fields: [batchId], references: [id])
+  title           String?
+  scheduledAt     DateTime
+  durationMinutes Int           @default(60)
+  googleMeetLink  String?
+  status          SessionStatus @default(SCHEDULED)
+  reminderSent    Boolean       @default(false)
+  platform        String        @default("EXTERNAL")
+  internalRoomId  String?
+  createdAt       DateTime      @default(now())
+
+  attendanceRecords AttendanceRecord[]
+  joinLogs          SessionJoinLog[]
+}
+
+model AttendanceRecord {
+  id        Int          @id @default(autoincrement())
+  sessionId Int
+  session   ClassSession @relation(fields: [sessionId], references: [id])
+  studentId Int
+  student   User         @relation(fields: [studentId], references: [id])
+  present   Boolean
+  markedAt  DateTime     @default(now())
+
+  @@unique([sessionId, studentId])
+}
+
+model SessionJoinLog {
+  id        Int          @id @default(autoincrement())
+  sessionId Int
+  session   ClassSession @relation(fields: [sessionId], references: [id])
+  studentId Int
+  student   User         @relation(fields: [studentId], references: [id])
+  joinedAt  DateTime     @default(now())
+
+  @@unique([sessionId, studentId])
+}
+
+model BatchJoinRequest {
+  id        Int      @id @default(autoincrement())
+  studentId Int
+  student   User     @relation(fields: [studentId], references: [id])
+  batchId   Int
+  batch     Batch    @relation(fields: [batchId], references: [id])
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+}
+
+model Resource {
+  id            Int          @id @default(autoincrement())
+  batchId       Int
+  batch         Batch        @relation(fields: [batchId], references: [id])
+  uploadedById  Int
+  uploadedBy    User         @relation(fields: [uploadedById], references: [id])
+  title         String
+  description   String?
+  type          ResourceType
+  fileName      String
+  storageKey    String       @unique
+  fileSizeBytes BigInt       @default(0)
+  uploadedAt    DateTime     @default(now())
+}
+
+model StudentQuery {
+  id        Int         @id @default(autoincrement())
+  studentId Int
+  student   User        @relation(fields: [studentId], references: [id])
+  subject   String
+  message   String
+  response  String?
+  status    QueryStatus @default(OPEN)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model PaymentHistory {
+  id                Int      @id @default(autoincrement())
+  studentId         Int
+  student           User     @relation(fields: [studentId], references: [id])
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?
+  amount            Float
+  status            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model TeacherInvite {
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  email     String?
+  used      Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+}
