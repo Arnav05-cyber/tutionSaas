@@ -62,7 +62,7 @@ export default function StudentQueriesPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header-row">
         <div>
           <h1 className="page-title">Help & Queries</h1>
           <p className="page-subtitle">Submit questions to the administration</p>

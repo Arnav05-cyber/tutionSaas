@@ -34,7 +34,7 @@ export default function LandingPage() {
       {/* Hero */}
       <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center', maxWidth: '640px', padding: '48px 24px' }}>
-          <h1 style={{ fontSize: '42px', fontWeight: 800, lineHeight: 1.2, marginBottom: '16px', letterSpacing: '-0.5px' }}>
+          <h1 className="hero-title">
             Excellence in Education.
           </h1>
           <p style={{ fontSize: '16px', color: 'var(--text-muted)', marginBottom: '32px', lineHeight: 1.6 }}>

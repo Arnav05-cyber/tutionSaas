@@ -62,7 +62,7 @@ export default function StudentSessionsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {sessions.map(s => (
-            <div key={s.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div key={s.id} className="card card-flex">
               <div>
                 <h3 style={{ fontSize: '15px', fontWeight: 500 }}>{s.title || 'Untitled Session'}</h3>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>

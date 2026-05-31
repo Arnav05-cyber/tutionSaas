@@ -44,16 +44,7 @@ export default function LinkCodePage() {
             <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>
               Share this code with your parent
             </p>
-            <div style={{
-              fontSize: '32px',
-              fontWeight: 700,
-              letterSpacing: '4px',
-              fontFamily: 'monospace',
-              padding: '16px',
-              background: 'var(--surface)',
-              borderRadius: 'var(--radius)',
-              marginBottom: '16px',
-            }}>
+            <div className="link-code" style={{ fontFamily: 'monospace', marginBottom: '16px' }}>
               {code}
             </div>
             <button className="btn" onClick={copyCode}>

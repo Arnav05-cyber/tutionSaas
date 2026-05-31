@@ -48,7 +48,7 @@ export default function InvitesPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header-row">
         <div>
           <h1 className="page-title">Teacher Invites</h1>
           <p className="page-subtitle">Generate invite links for teachers to sign up</p>

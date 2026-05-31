@@ -195,7 +195,7 @@ export default function AdminBatchesPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header-row">
         <div>
           <h1 className="page-title">Batches</h1>
           <p className="page-subtitle">Create and manage batches, assign teachers and students</p>
@@ -242,22 +242,22 @@ export default function AdminBatchesPage() {
                 <label className="input-label" style={{ marginBottom: '8px', display: 'block' }}>Weekly Schedule</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {DAYS.map(day => (
-                    <div key={day} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: daySlots[day].enabled ? 'var(--surface-hover)' : 'transparent', borderRadius: '8px', transition: 'background 0.15s' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '90px', cursor: 'pointer', fontSize: '14px' }}>
+                    <div key={day} className="schedule-row" style={{ background: daySlots[day].enabled ? '#F4F4F5' : 'transparent' }}>
+                      <label className="schedule-row-label">
                         <input type="checkbox" checked={daySlots[day].enabled} onChange={e => updateDaySlot(day, 'enabled', e.target.checked)} />
                         {DAY_SHORT[day]}
                       </label>
                       {daySlots[day].enabled && (
-                        <>
-                          <input type="time" className="input" style={{ width: '120px' }} value={daySlots[day].startTime} onChange={e => updateDaySlot(day, 'startTime', e.target.value)} />
-                          <select className="input" style={{ width: '100px' }} value={daySlots[day].durationMinutes} onChange={e => updateDaySlot(day, 'durationMinutes', Number(e.target.value))}>
+                        <div className="schedule-row-inputs">
+                          <input type="time" className="input" value={daySlots[day].startTime} onChange={e => updateDaySlot(day, 'startTime', e.target.value)} />
+                          <select className="input" value={daySlots[day].durationMinutes} onChange={e => updateDaySlot(day, 'durationMinutes', Number(e.target.value))}>
                             <option value={30}>30 min</option>
                             <option value={45}>45 min</option>
                             <option value={60}>60 min</option>
                             <option value={90}>90 min</option>
                             <option value={120}>120 min</option>
                           </select>
-                        </>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -337,7 +337,7 @@ export default function AdminBatchesPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {batches.map(b => (
             <div key={b.id} className="card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === b.id ? null : b.id)}>
+              <div className="card-row" style={{ cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === b.id ? null : b.id)}>
                 <div>
                   <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>{b.name}</h3>
                   <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>
@@ -347,7 +347,7 @@ export default function AdminBatchesPage() {
                     {b.schedule && b.schedule.length > 0 ? getScheduleSummary(b.schedule) : 'No schedule'}
                   </p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <div className="action-group" style={{ flexShrink: 0 }}>
                   <span className="badge">{b.studentCount} students</span>
                   <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
                     {b.monthlyFee > 0 ? `₹${b.monthlyFee}` : 'Fee not set'}

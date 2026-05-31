@@ -132,8 +132,8 @@ export default function StudentResourcesPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {filteredResources.map(r => (
-                <div key={r.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ flex: 1 }}>
+                <div key={r.id} className="card card-flex">
+                  <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', background: TYPE_COLORS[r.type] + '18', color: TYPE_COLORS[r.type], fontWeight: 600 }}>
                         {TYPE_LABELS[r.type] || r.type}
@@ -147,7 +147,7 @@ export default function StudentResourcesPage() {
                       By {r.teacherName} · {r.fileName} · {formatFileSize(r.fileSizeBytes)} · {formatDate(r.uploadedAt)}
                     </p>
                   </div>
-                  <a href={r.downloadUrl.startsWith('http') ? r.downloadUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${r.downloadUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary" style={{ flexShrink: 0 }}>
+                  <a href={r.downloadUrl.startsWith('http') ? r.downloadUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${r.downloadUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">
                     Download
                   </a>
                 </div>

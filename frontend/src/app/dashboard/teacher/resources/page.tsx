@@ -146,7 +146,7 @@ export default function TeacherResourcesPage() {
 
   return (
     <div>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header-row">
         <div>
           <h1 className="page-title">Resources</h1>
           <p className="page-subtitle">Upload notes, tests, and practice problems for your batches</p>
@@ -247,8 +247,8 @@ export default function TeacherResourcesPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {filteredResources.map(r => (
-                <div key={r.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                  <div style={{ flex: 1 }}>
+                <div key={r.id} className="card card-flex">
+                  <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '12px', background: TYPE_COLORS[r.type] + '18', color: TYPE_COLORS[r.type], fontWeight: 600 }}>
                         {TYPE_LABELS[r.type] || r.type}

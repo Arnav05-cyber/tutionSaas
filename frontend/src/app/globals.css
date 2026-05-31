@@ -626,3 +626,150 @@ tr:last-child td {
   }
 }
 
+/* ─── Detail grid (main content + sidebar) ─── */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Sticky sidebar becomes normal flow on mobile */
+  .detail-grid > *:last-child > * {
+    position: static !important;
+  }
+}
+
+/* ─── Page header row (title + action button) ─── */
+.page-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 768px) {
+  .page-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .page-header-row .btn {
+    align-self: flex-start;
+  }
+}
+
+/* ─── Schedule slot rows (day checkbox + time + duration) ─── */
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+
+.schedule-row-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 90px;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.schedule-row-inputs {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.schedule-row-inputs .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ─── Card list rows (content + badge/actions) ─── */
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+@media (max-width: 480px) {
+  .card-row {
+    flex-direction: column;
+  }
+}
+
+/* ─── Action button group ─── */
+.action-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ─── Responsive card grid ─── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* ─── Hero title ─── */
+.hero-title {
+  font-size: clamp(26px, 6vw, 42px);
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+/* ─── Flex card (content + action side by side, wraps on mobile) ─── */
+.card-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.card-flex > *:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ─── Fee row (label + value) ─── */
+.fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── Link code display ─── */
+.link-code {
+  font-size: clamp(22px, 7vw, 32px);
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-align: center;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  word-break: break-all;
+}
+
