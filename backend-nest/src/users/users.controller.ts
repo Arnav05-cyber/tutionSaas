@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   NotFoundException,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -29,6 +30,17 @@ export class UsersController {
   me(@CurrentUser() user: any) {
     if (!user) throw new NotFoundException('User not found');
     return toUserResponse(user);
+  }
+
+  @Patch('me')
+  async updateMe(
+    @ClerkId() clerkId: string,
+    @CurrentUser() user: any,
+    @Body() body: { email?: string },
+  ) {
+    if (!user) throw new NotFoundException('User not found');
+    const updated = await this.usersService.updateEmail(clerkId, body.email);
+    return toUserResponse(updated);
   }
 
   @Post('generate-link-code')

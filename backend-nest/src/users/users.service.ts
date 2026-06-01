@@ -97,6 +97,16 @@ export class UsersService {
     return code;
   }
 
+  async updateEmail(clerkId: string, email?: string) {
+    if (!email) {
+      return this.prisma.user.findUnique({ where: { clerkId } });
+    }
+    return this.prisma.user.update({
+      where: { clerkId },
+      data: { email },
+    });
+  }
+
   async deleteUserByClerkId(clerkId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({ where: { clerkId } });
     if (!user) {

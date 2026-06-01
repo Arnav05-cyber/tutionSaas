@@ -1,12 +1,13 @@
 'use client';
 
-import { useAuth } from '@clerk/nextjs';
+import { useAuth, useUser } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import api from '@/lib/api';
 
 function OnboardingForm() {
   const { getToken, isLoaded } = useAuth();
+  const { user: clerkUser } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -72,7 +73,8 @@ function OnboardingForm() {
 
     try {
       const token = await getToken();
-      const user = await api.post('/api/users/onboard', form, token);
+      const email = clerkUser?.primaryEmailAddress?.emailAddress ?? null;
+      const user = await api.post('/api/users/onboard', { ...form, email }, token);
       localStorage.removeItem('teacherInviteToken');
       redirectByRole(user.role);
     } catch (err: unknown) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth, UserButton } from '@clerk/nextjs';
+import { useAuth, UserButton, useUser } from '@clerk/nextjs';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -47,6 +47,7 @@ const NAV: Record<string, { label: string; href: string }[]> = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { getToken, isLoaded } = useAuth();
+  const { user: clerkUser } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserData | null>(null);
@@ -63,6 +64,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (!data.onboardingComplete && data.role !== 'ADMIN') {
           router.push('/onboarding');
           return;
+        }
+        if (!data.email && clerkUser?.primaryEmailAddress?.emailAddress) {
+          await api.patch('/api/users/me', { email: clerkUser.primaryEmailAddress.emailAddress }, token);
+          data.email = clerkUser.primaryEmailAddress.emailAddress;
         }
         setUser(data);
       } catch {
