@@ -39,10 +39,9 @@ export class ClerkAuthGuard implements CanActivate {
       if (!clerkId) throw new UnauthorizedException('Invalid token subject');
 
       const user = await this.prisma.user.findUnique({ where: { clerkId } });
-      if (!user) throw new UnauthorizedException('User not found');
 
       request.clerkId = clerkId;
-      request.user = user;
+      request.user = user ?? null;
       return true;
     } catch (err) {
       if (err instanceof UnauthorizedException) throw err;

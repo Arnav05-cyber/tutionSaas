@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -26,7 +27,7 @@ export class UsersController {
 
   @Get('me')
   me(@CurrentUser() user: any) {
-    if (!user) throw new Error('User not found');
+    if (!user) throw new NotFoundException('User not found');
     return toUserResponse(user);
   }
 
