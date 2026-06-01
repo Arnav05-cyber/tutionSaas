@@ -9,6 +9,7 @@ import { SessionsModule } from './sessions/sessions.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { ResourcesModule } from './resources/resources.module';
 import { QueriesModule } from './queries/queries.module';
+import { BatchDoubtsModule } from './batch-doubts/batch-doubts.module';
 import { StudentModule } from './student/student.module';
 import { ParentModule } from './parent/parent.module';
 import { AdminModule } from './admin/admin.module';
@@ -27,6 +28,7 @@ import { FeeResetScheduler } from './scheduler/fee-reset.scheduler';
     AttendanceModule,
     ResourcesModule,
     QueriesModule,
+    BatchDoubtsModule,
     StudentModule,
     ParentModule,
     AdminModule,

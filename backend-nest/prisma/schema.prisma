@@ -58,6 +58,7 @@ model User {
   paymentHistory    PaymentHistory[]
   uploadedResources Resource[]
   queries           StudentQuery[]
+  studentDoubts     BatchDoubt[]       @relation("StudentDoubts")
 }
 
 model TeacherProfile {
@@ -99,6 +100,7 @@ model Batch {
   sessions      ClassSession[]
   joinRequests  BatchJoinRequest[]
   resources     Resource[]
+  doubts        BatchDoubt[]
 }
 
 model ScheduleSlot {
@@ -207,4 +209,18 @@ model TeacherInvite {
   used      Boolean   @default(false)
   createdAt DateTime  @default(now())
   expiresAt DateTime?
+}
+
+model BatchDoubt {
+  id        Int         @id @default(autoincrement())
+  studentId Int
+  student   User        @relation("StudentDoubts", fields: [studentId], references: [id])
+  batchId   Int
+  batch     Batch       @relation(fields: [batchId], references: [id])
+  subject   String
+  message   String
+  response  String?
+  status    QueryStatus @default(OPEN)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
