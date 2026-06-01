@@ -47,7 +47,7 @@ const NAV: Record<string, { label: string; href: string }[]> = {
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { getToken, isLoaded } = useAuth();
-  const { user: clerkUser } = useUser();
+  const { user: clerkUser, isLoaded: isUserLoaded } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<UserData | null>(null);
@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoaded) return;
+    if (!isLoaded || !isUserLoaded) return;
 
     async function load() {
       try {
@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     }
     load();
-  }, [isLoaded, getToken, router]);
+  }, [isLoaded, isUserLoaded, getToken, router, clerkUser]);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
