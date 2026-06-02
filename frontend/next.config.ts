@@ -14,12 +14,12 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://clerk.edusha.co.in",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://api.razorpay.com",
-      "frame-src https://checkout.razorpay.com https://*.clerk.accounts.dev",
+      "connect-src 'self' https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://clerk.edusha.co.in https://api.razorpay.com",
+      "frame-src https://checkout.razorpay.com https://*.clerk.accounts.dev https://clerk.edusha.co.in",
     ].join('; '),
   },
 ];
