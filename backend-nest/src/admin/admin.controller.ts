@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Post,
@@ -53,11 +55,11 @@ export class AdminController {
   }
 
   @Delete('users/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   async forceDeleteUser(@Param('id', ParseIntPipe) id: number) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new Error('User not found');
     await this.usersService.deleteUserByClerkId(user.clerkId);
-    return null;
   }
 
   @Get('fees')
