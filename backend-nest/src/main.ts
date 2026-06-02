@@ -5,10 +5,14 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const wwwFrontendUrl = frontendUrl.replace('https://', 'https://www.');
+
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      process.env.FRONTEND_URL || 'http://localhost:3000',
+      frontendUrl,
+      wwwFrontendUrl,
     ],
     credentials: true,
   });
