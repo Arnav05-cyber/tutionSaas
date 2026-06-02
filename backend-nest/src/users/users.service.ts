@@ -46,6 +46,11 @@ export class UsersService {
       });
     }
 
+    let teacherCode: string | null = null;
+    if (role === Role.TEACHER && dto.fullName) {
+      teacherCode = await this.generateUniqueTeacherCode(dto.fullName);
+    }
+
     const user = await this.prisma.user.create({
       data: {
         clerkId,
@@ -55,6 +60,7 @@ export class UsersService {
         grade: dto.grade || null,
         role,
         onboardingComplete: true,
+        ...(teacherCode ? { teacherCode } : {}),
       },
     });
 
@@ -158,6 +164,24 @@ export class UsersService {
     // 8. Delete user
     await this.prisma.user.delete({ where: { id: userId } });
     console.log(`User ${userId} deleted successfully`);
+  }
+
+  private async generateUniqueTeacherCode(fullName: string): Promise<string> {
+    const parts = fullName.trim().split(/\s+/);
+    const first = (parts[0]?.[0] || '').toLowerCase();
+    const second = parts.length >= 2 ? (parts[parts.length - 1]?.[0] || '').toLowerCase() : '';
+    const base = `edusha_${first}${second}`;
+
+    const exists = await this.prisma.user.findUnique({ where: { teacherCode: base } });
+    if (!exists) return base;
+
+    let suffix = 2;
+    while (true) {
+      const candidate = `${base}${suffix}`;
+      const taken = await this.prisma.user.findUnique({ where: { teacherCode: candidate } });
+      if (!taken) return candidate;
+      suffix++;
+    }
   }
 
   private async generateUniqueCode(): Promise<string> {

@@ -42,6 +42,7 @@ model User {
   grade              String?
   blocked            Boolean  @default(false)
   onboardingComplete Boolean  @default(false)
+  teacherCode        String?  @unique
   createdAt          DateTime @default(now())
 
   teacherProfile  TeacherProfile?

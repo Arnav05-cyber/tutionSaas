@@ -62,5 +62,6 @@ function toUserResponse(user: any) {
     grade: user.grade,
     blocked: user.blocked,
     onboardingComplete: user.onboardingComplete,
+    teacherCode: user.teacherCode ?? null,
   };
 }

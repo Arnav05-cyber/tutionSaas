@@ -14,16 +14,32 @@ interface Batch {
   active: boolean;
 }
 
+interface UserData {
+  teacherCode: string | null;
+}
+
+function formatTeacherCode(code: string): string {
+  // "edusha_av" → "Edusha_AV"
+  const parts = code.split('_');
+  if (parts.length < 2) return code;
+  return parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + '_' + parts[1].toUpperCase();
+}
+
 export default function TeacherDashboard() {
   const { getToken } = useAuth();
   const [batches, setBatches] = useState<Batch[]>([]);
+  const [user, setUser] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       const token = await getToken();
-      const data = await api.get('/api/batches/my', token);
-      setBatches(data);
+      const [batchData, userData] = await Promise.all([
+        api.get('/api/batches/my', token),
+        api.get('/api/users/me', token),
+      ]);
+      setBatches(batchData);
+      setUser(userData);
       setLoading(false);
     }
     load();
@@ -34,7 +50,11 @@ export default function TeacherDashboard() {
   return (
     <div>
       <div className="page-header">
-        <h1 className="page-title">Teacher Dashboard</h1>
+        <h1 className="page-title">
+          {user?.teacherCode
+            ? `Welcome ${formatTeacherCode(user.teacherCode)}!`
+            : 'Teacher Dashboard'}
+        </h1>
         <p className="page-subtitle">Your batches and sessions</p>
       </div>
 

@@ -12,6 +12,7 @@ interface UserData {
   fullName: string;
   blocked: boolean;
   onboardingComplete: boolean;
+  teacherCode: string | null;
 }
 
 const NAV: Record<string, { label: string; href: string }[]> = {
