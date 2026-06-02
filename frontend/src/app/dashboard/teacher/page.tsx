@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { formatTeacherCode } from '@/lib/teacherCode';
 
 interface Batch {
   id: number;
@@ -16,13 +17,6 @@ interface Batch {
 
 interface UserData {
   teacherCode: string | null;
-}
-
-function formatTeacherCode(code: string): string {
-  // "edusha_av" → "Edusha_AV"
-  const parts = code.split('_');
-  if (parts.length < 2) return code;
-  return parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + '_' + parts[1].toUpperCase();
 }
 
 export default function TeacherDashboard() {

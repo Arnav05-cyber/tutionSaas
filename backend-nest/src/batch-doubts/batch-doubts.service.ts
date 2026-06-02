@@ -100,7 +100,7 @@ function toDoubtResponse(doubt: any) {
     studentName: doubt.student?.fullName || doubt.student?.email,
     batchId: doubt.batchId,
     batchName: doubt.batch?.name,
-    teacherName: doubt.batch?.teacher?.fullName || doubt.batch?.teacher?.email,
+    teacherCode: doubt.batch?.teacher?.teacherCode || null,
     createdAt: doubt.createdAt,
     updatedAt: doubt.updatedAt,
   };

@@ -3,6 +3,7 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { formatTeacherCode } from '@/lib/teacherCode';
 
 interface Batch {
   id: number;
@@ -18,7 +19,7 @@ interface BatchDoubt {
   status: string;
   batchId: number;
   batchName: string;
-  teacherName: string;
+  teacherCode: string | null;
   createdAt: string;
 }
 
@@ -162,7 +163,7 @@ export default function StudentBatchDoubtsPage() {
               </div>
 
               <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '10px' }}>
-                {d.batchName} &bull; Teacher: {d.teacherName}
+                {d.batchName} &bull; Teacher: {formatTeacherCode(d.teacherCode)}
               </div>
 
               <div style={{ background: 'var(--bg)', padding: '12px', borderRadius: '6px', fontSize: '14px', marginBottom: '12px', whiteSpace: 'pre-wrap' }}>

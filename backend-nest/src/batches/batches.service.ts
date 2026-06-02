@@ -264,7 +264,7 @@ function toBatchResponse(batch: any) {
     name: batch.name,
     grade: batch.grade,
     teacherId: batch.teacherId,
-    teacherName: batch.teacher?.fullName || batch.teacher?.email || '',
+    teacherCode: batch.teacher?.teacherCode || null,
     studentCount: batch.students?.length || 0,
     isActive: batch.isActive,
     monthlyFee: batch.monthlyFee,

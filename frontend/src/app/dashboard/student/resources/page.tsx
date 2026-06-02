@@ -3,6 +3,7 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { formatTeacherCode } from '@/lib/teacherCode';
 
 interface Batch {
   id: number;
@@ -20,7 +21,7 @@ interface Resource {
   downloadUrl: string;
   uploadedAt: string;
   batchName: string;
-  teacherName: string;
+  teacherCode: string | null;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -144,7 +145,7 @@ export default function StudentResourcesPage() {
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>{r.description}</p>
                     )}
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      By {r.teacherName} · {r.fileName} · {formatFileSize(r.fileSizeBytes)} · {formatDate(r.uploadedAt)}
+                      By {formatTeacherCode(r.teacherCode)} · {r.fileName} · {formatFileSize(r.fileSizeBytes)} · {formatDate(r.uploadedAt)}
                     </p>
                   </div>
                   <a href={r.downloadUrl.startsWith('http') ? r.downloadUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${r.downloadUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">

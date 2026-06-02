@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import api from '@/lib/api';
+import { formatTeacherCode } from '@/lib/teacherCode';
 
 interface FeeStatus {
   studentId: number;
@@ -27,7 +28,7 @@ interface Batch {
   id: number;
   name: string;
   grade: string;
-  teacherName: string;
+  teacherCode: string | null;
   monthlyFee: number;
   schedule: ScheduleSlot[];
   attendance?: AttendanceSummary;
@@ -187,7 +188,7 @@ export default function ParentStudentDetailPage() {
                   <div key={b.id} className="card">
                     <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>{b.name}</h3>
                     <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                      Teacher: {b.teacherName}
+                      Teacher: {formatTeacherCode(b.teacherCode)}
                     </p>
                     
                     {b.schedule && b.schedule.length > 0 && (

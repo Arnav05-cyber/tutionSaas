@@ -57,6 +57,7 @@ export class ResourcesService {
     const resources = await this.prisma.resource.findMany({
       where: { batchId },
       orderBy: { uploadedAt: 'desc' },
+      include: { uploadedBy: true },
     });
     return resources.map((r) =>
       toResourceResponse(r, this.storage.generateDownloadUrl(r.storageKey)),
@@ -102,6 +103,7 @@ function toResourceResponse(resource: any, downloadUrl: string) {
     fileName: resource.fileName,
     fileSizeBytes: resource.fileSizeBytes?.toString(),
     uploadedAt: resource.uploadedAt,
+    teacherCode: resource.uploadedBy?.teacherCode ?? null,
     downloadUrl,
   };
 }

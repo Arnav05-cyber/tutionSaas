@@ -112,7 +112,7 @@ export class ParentService {
       id: b.id,
       name: b.name,
       grade: b.grade,
-      teacherName: b.teacher?.fullName || b.teacher?.email,
+      teacherCode: b.teacher?.teacherCode || null,
       monthlyFee: b.monthlyFee,
       schedule: b.scheduleSlots.map((s) => ({
         dayOfWeek: s.dayOfWeek,
