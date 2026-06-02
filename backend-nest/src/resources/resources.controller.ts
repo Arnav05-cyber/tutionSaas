@@ -30,7 +30,7 @@ export class ResourcesController {
   @UseInterceptors(FileInterceptor('file', { storage: memoryStorage() }))
   upload(
     @Param('batchId', ParseIntPipe) batchId: number,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @Body() body: any,
     @ClerkId() clerkId: string,
   ) {

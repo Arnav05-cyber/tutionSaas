@@ -7,6 +7,7 @@ import api from '@/lib/api';
 interface Invite {
   id: number;
   token: string;
+  teacherName: string | null;
   inviteUrl: string;
   used: boolean;
   expiresAt: string;
@@ -19,6 +20,9 @@ export default function InvitesPage() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState<number | null>(null);
 
+  const [showModal, setShowModal] = useState(false);
+  const [teacherName, setTeacherName] = useState('');
+
   useEffect(() => {
     loadInvites();
   }, []);
@@ -29,11 +33,14 @@ export default function InvitesPage() {
     setInvites(data);
   }
 
-  async function generate() {
+  async function generate(e: React.FormEvent) {
+    e.preventDefault();
     setLoading(true);
     try {
       const token = await getToken();
-      await api.post('/api/admin/invites', {}, token);
+      await api.post('/api/admin/invites', { teacherName: teacherName.trim() || undefined }, token);
+      setTeacherName('');
+      setShowModal(false);
       await loadInvites();
     } finally {
       setLoading(false);
@@ -53,16 +60,46 @@ export default function InvitesPage() {
           <h1 className="page-title">Teacher Invites</h1>
           <p className="page-subtitle">Generate invite links for teachers to sign up</p>
         </div>
-        <button className="btn btn-primary" onClick={generate} disabled={loading}>
-          {loading ? 'Generating...' : 'Generate Invite Link'}
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          Generate Invite Link
         </button>
       </div>
+
+      {showModal && (
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="card modal" onClick={e => e.stopPropagation()} style={{ width: '400px', maxWidth: '95vw' }}>
+            <h2 className="modal-title">Generate Invite Link</h2>
+            <form onSubmit={generate}>
+              <div className="form-group">
+                <label className="input-label">Teacher Name</label>
+                <input
+                  className="input"
+                  placeholder="e.g. Akshika Vyas"
+                  value={teacherName}
+                  onChange={e => setTeacherName(e.target.value)}
+                  autoFocus
+                />
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  For tracking only — does not affect the invite link.
+                </p>
+              </div>
+              <div className="form-actions" style={{ justifyContent: 'flex-end' }}>
+                <button type="button" className="btn" onClick={() => setShowModal(false)} disabled={loading}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={loading}>
+                  {loading ? 'Generating...' : 'Generate'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
+                <th>Teacher</th>
                 <th>Status</th>
                 <th>Created</th>
                 <th>Expires</th>
@@ -71,10 +108,13 @@ export default function InvitesPage() {
             </thead>
             <tbody>
               {invites.length === 0 && (
-                <tr><td colSpan={4} className="empty-state"><p>No invites yet</p></td></tr>
+                <tr><td colSpan={5} className="empty-state"><p>No invites yet</p></td></tr>
               )}
               {invites.map(invite => (
                 <tr key={invite.id}>
+                  <td style={{ fontWeight: 500 }}>
+                    {invite.teacherName || <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>—</span>}
+                  </td>
                   <td>
                     <span className={`badge ${invite.used ? 'badge-success' : 'badge-accent'}`}>
                       {invite.used ? 'Used' : 'Active'}

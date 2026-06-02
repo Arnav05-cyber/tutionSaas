@@ -11,12 +11,12 @@ export class AdminService {
     private config: ConfigService,
   ) {}
 
-  async generateTeacherInvite() {
+  async generateTeacherInvite(teacherName?: string) {
     const token = uuidv4();
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const invite = await this.prisma.teacherInvite.create({
-      data: { token, used: false, expiresAt },
+      data: { token, used: false, expiresAt, teacherName: teacherName || null },
     });
 
     return toInviteResponse(invite, this.config.get('FRONTEND_URL'));
@@ -122,6 +122,7 @@ function toInviteResponse(invite: any, frontendUrl: string) {
   return {
     id: invite.id,
     token: invite.token,
+    teacherName: invite.teacherName ?? null,
     inviteUrl: `${frontendUrl}/sign-up?invite=${invite.token}`,
     used: invite.used,
     expiresAt: invite.expiresAt,

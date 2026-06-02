@@ -33,8 +33,8 @@ export class AdminController {
   ) {}
 
   @Post('invites')
-  generateInvite() {
-    return this.adminService.generateTeacherInvite();
+  generateInvite(@Body() body: { teacherName?: string }) {
+    return this.adminService.generateTeacherInvite(body.teacherName);
   }
 
   @Get('invites')

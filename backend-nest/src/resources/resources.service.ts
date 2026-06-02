@@ -17,8 +17,8 @@ export class ResourcesService {
 
   async uploadResource(
     batchId: number,
-    file: Express.Multer.File,
-    dto: { title: string; description?: string; type: string },
+    file: Express.Multer.File | undefined,
+    dto: { title: string; description?: string; type: string; formLink?: string },
     clerkId: string,
   ) {
     const batch = await this.prisma.batch.findUnique({
@@ -34,8 +34,15 @@ export class ResourcesService {
       throw new ForbiddenException('You can only upload resources to your own batches');
     }
 
-    const storageKey = `batch-${batchId}/${uuidv4()}_${file.originalname}`;
-    await this.storage.upload(file, storageKey);
+    const type = dto.type.toUpperCase() as ResourceType;
+    const isMcq = type === ResourceType.MCQ;
+
+    let storageKey: string | null = null;
+    if (!isMcq) {
+      if (!file) throw new ForbiddenException('File is required for this resource type');
+      storageKey = `batch-${batchId}/${uuidv4()}_${file.originalname}`;
+      await this.storage.upload(file, storageKey);
+    }
 
     const resource = await this.prisma.resource.create({
       data: {
@@ -43,14 +50,16 @@ export class ResourcesService {
         uploadedById: teacher.id,
         title: dto.title,
         description: dto.description || null,
-        type: dto.type.toUpperCase() as ResourceType,
-        fileName: file.originalname,
+        type,
+        fileName: file?.originalname || null,
         storageKey,
-        fileSizeBytes: BigInt(file.size),
+        fileSizeBytes: file ? BigInt(file.size) : BigInt(0),
+        formLink: isMcq ? (dto.formLink || null) : null,
       },
     });
 
-    return toResourceResponse(resource, this.storage.generateDownloadUrl(storageKey));
+    const downloadUrl = storageKey ? this.storage.generateDownloadUrl(storageKey) : null;
+    return toResourceResponse(resource, downloadUrl);
   }
 
   async getResourcesForBatch(batchId: number) {
@@ -60,7 +69,7 @@ export class ResourcesService {
       include: { uploadedBy: true },
     });
     return resources.map((r) =>
-      toResourceResponse(r, this.storage.generateDownloadUrl(r.storageKey)),
+      toResourceResponse(r, r.storageKey ? this.storage.generateDownloadUrl(r.storageKey) : null),
     );
   }
 
@@ -68,9 +77,10 @@ export class ResourcesService {
     const resources = await this.prisma.resource.findMany({
       where: { batchId, type: type.toUpperCase() as ResourceType },
       orderBy: { uploadedAt: 'desc' },
+      include: { uploadedBy: true },
     });
     return resources.map((r) =>
-      toResourceResponse(r, this.storage.generateDownloadUrl(r.storageKey)),
+      toResourceResponse(r, r.storageKey ? this.storage.generateDownloadUrl(r.storageKey) : null),
     );
   }
 
@@ -88,12 +98,14 @@ export class ResourcesService {
       throw new ForbiddenException('You can only delete your own resources');
     }
 
-    try { await this.storage.delete(resource.storageKey); } catch (e) { console.error(e); }
+    if (resource.storageKey) {
+      try { await this.storage.delete(resource.storageKey); } catch (e) { console.error(e); }
+    }
     await this.prisma.resource.delete({ where: { id: resourceId } });
   }
 }
 
-function toResourceResponse(resource: any, downloadUrl: string) {
+function toResourceResponse(resource: any, downloadUrl: string | null) {
   return {
     id: resource.id,
     batchId: resource.batchId,
@@ -104,6 +116,7 @@ function toResourceResponse(resource: any, downloadUrl: string) {
     fileSizeBytes: resource.fileSizeBytes?.toString(),
     uploadedAt: resource.uploadedAt,
     teacherCode: resource.uploadedBy?.teacherCode ?? null,
+    formLink: resource.formLink ?? null,
     downloadUrl,
   };
 }

@@ -16,22 +16,26 @@ interface Resource {
   title: string;
   description: string;
   type: string;
-  fileName: string;
+  fileName: string | null;
   fileSizeBytes: number;
-  downloadUrl: string;
+  downloadUrl: string | null;
+  formLink: string | null;
   uploadedAt: string;
-  batchName: string;
   teacherCode: string | null;
 }
 
 const TYPE_LABELS: Record<string, string> = {
   NOTES: 'Notes',
+  MCQ: 'MCQs',
+  SHORT_QUESTIONS: 'Short Questions',
   WPP: 'Practice Problems',
   TEST: 'Test',
 };
 
 const TYPE_COLORS: Record<string, string> = {
   NOTES: '#3b82f6',
+  MCQ: '#8b5cf6',
+  SHORT_QUESTIONS: '#10b981',
   WPP: '#f59e0b',
   TEST: '#ef4444',
 };
@@ -115,7 +119,7 @@ export default function StudentResourcesPage() {
 
           {/* ─── Type Filter ─── */}
           <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-            {['ALL', 'NOTES', 'WPP', 'TEST'].map(t => (
+            {['ALL', 'NOTES', 'MCQ', 'SHORT_QUESTIONS', 'WPP', 'TEST'].map(t => (
               <button
                 key={t}
                 className={`btn btn-sm ${filterType === t ? 'btn-primary' : ''}`}
@@ -145,12 +149,18 @@ export default function StudentResourcesPage() {
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>{r.description}</p>
                     )}
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      By {formatTeacherCode(r.teacherCode)} · {r.fileName} · {formatFileSize(r.fileSizeBytes)} · {formatDate(r.uploadedAt)}
+                      By {formatTeacherCode(r.teacherCode)} · {r.type === 'MCQ' ? formatDate(r.uploadedAt) : `${r.fileName} · ${formatFileSize(r.fileSizeBytes)} · ${formatDate(r.uploadedAt)}`}
                     </p>
                   </div>
-                  <a href={r.downloadUrl.startsWith('http') ? r.downloadUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${r.downloadUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">
-                    Download
-                  </a>
+                  {r.type === 'MCQ' ? (
+                    <a href={r.formLink!} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">
+                      Open Form
+                    </a>
+                  ) : (
+                    <a href={r.downloadUrl!.startsWith('http') ? r.downloadUrl! : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${r.downloadUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">
+                      Download
+                    </a>
+                  )}
                 </div>
               ))}
             </div>

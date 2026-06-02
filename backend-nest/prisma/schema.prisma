@@ -25,6 +25,8 @@ enum ResourceType {
   NOTES
   WPP
   TEST
+  MCQ
+  SHORT_QUESTIONS
 }
 
 enum QueryStatus {
@@ -173,9 +175,10 @@ model Resource {
   title         String
   description   String?
   type          ResourceType
-  fileName      String
-  storageKey    String       @unique
+  fileName      String?
+  storageKey    String?      @unique
   fileSizeBytes BigInt       @default(0)
+  formLink      String?
   uploadedAt    DateTime     @default(now())
 }
 
@@ -204,12 +207,13 @@ model PaymentHistory {
 }
 
 model TeacherInvite {
-  id        Int       @id @default(autoincrement())
-  token     String    @unique
-  email     String?
-  used      Boolean   @default(false)
-  createdAt DateTime  @default(now())
-  expiresAt DateTime?
+  id          Int       @id @default(autoincrement())
+  token       String    @unique
+  email       String?
+  teacherName String?
+  used        Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
 }
 
 model BatchDoubt {

@@ -15,22 +15,25 @@ interface Resource {
   title: string;
   description: string;
   type: string;
-  fileName: string;
+  fileName: string | null;
   fileSizeBytes: number;
-  downloadUrl: string;
+  downloadUrl: string | null;
+  formLink: string | null;
   uploadedAt: string;
-  batchName: string;
-  teacherName: string;
 }
 
 const TYPE_LABELS: Record<string, string> = {
   NOTES: 'Notes',
+  MCQ: 'MCQs',
+  SHORT_QUESTIONS: 'Short Questions',
   WPP: 'Practice Problems',
   TEST: 'Test',
 };
 
 const TYPE_COLORS: Record<string, string> = {
   NOTES: '#3b82f6',
+  MCQ: '#8b5cf6',
+  SHORT_QUESTIONS: '#10b981',
   WPP: '#f59e0b',
   TEST: '#ef4444',
 };
@@ -43,9 +46,7 @@ function formatFileSize(bytes: number): string {
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+    day: 'numeric', month: 'short', year: 'numeric',
   });
 }
 
@@ -57,7 +58,6 @@ export default function TeacherResourcesPage() {
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('ALL');
 
-  // Upload form
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadTitle, setUploadTitle] = useState('');
@@ -65,6 +65,7 @@ export default function TeacherResourcesPage() {
   const [uploadType, setUploadType] = useState('NOTES');
   const [uploadBatchId, setUploadBatchId] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFormLink, setUploadFormLink] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -81,9 +82,7 @@ export default function TeacherResourcesPage() {
   }, []);
 
   useEffect(() => {
-    if (selectedBatchId !== null) {
-      loadResources(selectedBatchId);
-    }
+    if (selectedBatchId !== null) loadResources(selectedBatchId);
   }, [selectedBatchId]);
 
   async function loadResources(batchId: number) {
@@ -94,27 +93,31 @@ export default function TeacherResourcesPage() {
 
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault();
-    if (!uploadFile || !uploadBatchId) return;
+    if (!uploadBatchId) return;
+    const isMcq = uploadType === 'MCQ';
+    if (!isMcq && !uploadFile) return;
+
     setUploading(true);
     try {
       const token = await getToken();
       const formData = new FormData();
-      formData.append('file', uploadFile);
+      if (uploadFile) formData.append('file', uploadFile);
       formData.append('title', uploadTitle);
       formData.append('description', uploadDesc);
       formData.append('type', uploadType);
+      if (isMcq) formData.append('formLink', uploadFormLink);
 
       await api.upload(`/api/batches/${uploadBatchId}/resources`, formData, token);
-      alert('Resource uploaded successfully!');
+      alert('Resource added successfully!');
       setShowUpload(false);
-      resetUploadForm();
+      resetForm();
       if (selectedBatchId === Number(uploadBatchId)) {
         await loadResources(selectedBatchId);
       } else {
         setSelectedBatchId(Number(uploadBatchId));
       }
     } catch (err: any) {
-      alert(`Upload failed: ${err.message || 'Unknown error'}`);
+      alert(`Failed: ${err.message || 'Unknown error'}`);
     } finally {
       setUploading(false);
     }
@@ -131,16 +134,16 @@ export default function TeacherResourcesPage() {
     }
   }
 
-  function resetUploadForm() {
+  function resetForm() {
     setUploadTitle('');
     setUploadDesc('');
     setUploadType('NOTES');
     setUploadFile(null);
+    setUploadFormLink('');
   }
 
-  const filteredResources = filterType === 'ALL'
-    ? resources
-    : resources.filter(r => r.type === filterType);
+  const isMcqUpload = uploadType === 'MCQ';
+  const filteredResources = filterType === 'ALL' ? resources : resources.filter(r => r.type === filterType);
 
   if (loading) return <div className="loading-page"><div className="spinner" /></div>;
 
@@ -149,16 +152,16 @@ export default function TeacherResourcesPage() {
       <div className="page-header-row">
         <div>
           <h1 className="page-title">Resources</h1>
-          <p className="page-subtitle">Upload notes, tests, and practice problems for your batches</p>
+          <p className="page-subtitle">Upload notes, MCQs, short questions, and tests for your batches</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowUpload(true)}>Upload Resource</button>
+        <button className="btn btn-primary" onClick={() => setShowUpload(true)}>Add Resource</button>
       </div>
 
       {/* ─── Upload Modal ─── */}
       {showUpload && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div className="card" style={{ width: '500px', maxWidth: '95%' }}>
-            <h2 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 600 }}>Upload Resource</h2>
+            <h2 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 600 }}>Add Resource</h2>
             <form onSubmit={handleUpload}>
               <div className="form-group">
                 <label className="input-label">Title</label>
@@ -166,7 +169,7 @@ export default function TeacherResourcesPage() {
               </div>
               <div className="form-group">
                 <label className="input-label">Description (optional)</label>
-                <textarea className="input" rows={2} placeholder="Brief description of this resource" value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} style={{ resize: 'vertical' }} />
+                <textarea className="input" rows={2} placeholder="Brief description" value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} style={{ resize: 'vertical' }} />
               </div>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div className="form-group" style={{ flex: 1 }}>
@@ -181,28 +184,46 @@ export default function TeacherResourcesPage() {
                   <label className="input-label">Type</label>
                   <select className="input" value={uploadType} onChange={e => setUploadType(e.target.value)}>
                     <option value="NOTES">Notes</option>
+                    <option value="MCQ">MCQs</option>
+                    <option value="SHORT_QUESTIONS">Short Questions</option>
                     <option value="WPP">Practice Problems</option>
                     <option value="TEST">Test</option>
                   </select>
                 </div>
               </div>
-              <div className="form-group">
-                <label className="input-label">File</label>
-                <input
-                  type="file"
-                  required
-                  className="input"
-                  onChange={e => setUploadFile(e.target.files?.[0] || null)}
-                  style={{ padding: '8px' }}
-                />
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Max 10MB. All file formats supported (PDF, Word, PPT, images, etc.)
-                </p>
-              </div>
+
+              {isMcqUpload ? (
+                <div className="form-group">
+                  <label className="input-label">Google Form Link</label>
+                  <input
+                    className="input"
+                    required
+                    type="url"
+                    placeholder="https://docs.google.com/forms/..."
+                    value={uploadFormLink}
+                    onChange={e => setUploadFormLink(e.target.value)}
+                  />
+                </div>
+              ) : (
+                <div className="form-group">
+                  <label className="input-label">File</label>
+                  <input
+                    type="file"
+                    required
+                    className="input"
+                    onChange={e => setUploadFile(e.target.files?.[0] || null)}
+                    style={{ padding: '8px' }}
+                  />
+                  <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    Max 10MB. PDF, Word, PPT, images, etc.
+                  </p>
+                </div>
+              )}
+
               <div className="form-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" className="btn" onClick={() => { setShowUpload(false); resetUploadForm(); }} disabled={uploading}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={uploading || !uploadFile}>
-                  {uploading ? 'Uploading...' : 'Upload'}
+                <button type="button" className="btn" onClick={() => { setShowUpload(false); resetForm(); }} disabled={uploading}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={uploading || (!isMcqUpload && !uploadFile)}>
+                  {uploading ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </form>
@@ -210,11 +231,11 @@ export default function TeacherResourcesPage() {
         </div>
       )}
 
-      {/* ─── Batch Tabs ─── */}
       {batches.length === 0 ? (
         <div className="card empty-state"><p>You are not assigned to any batches yet.</p></div>
       ) : (
         <>
+          {/* ─── Batch Tabs ─── */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
             {batches.map(b => (
               <button
@@ -228,8 +249,8 @@ export default function TeacherResourcesPage() {
           </div>
 
           {/* ─── Type Filter ─── */}
-          <div style={{ display: 'flex', gap: '6px', marginBottom: '16px' }}>
-            {['ALL', 'NOTES', 'WPP', 'TEST'].map(t => (
+          <div style={{ display: 'flex', gap: '6px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            {['ALL', 'NOTES', 'MCQ', 'SHORT_QUESTIONS', 'WPP', 'TEST'].map(t => (
               <button
                 key={t}
                 className={`btn btn-sm ${filterType === t ? 'btn-primary' : ''}`}
@@ -243,7 +264,7 @@ export default function TeacherResourcesPage() {
 
           {/* ─── Resource List ─── */}
           {filteredResources.length === 0 ? (
-            <div className="card empty-state"><p>No resources uploaded yet{filterType !== 'ALL' ? ' for this type' : ''}. Click &quot;Upload Resource&quot; to add one.</p></div>
+            <div className="card empty-state"><p>No resources yet{filterType !== 'ALL' ? ' for this type' : ''}.</p></div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {filteredResources.map(r => (
@@ -259,13 +280,21 @@ export default function TeacherResourcesPage() {
                       <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '4px' }}>{r.description}</p>
                     )}
                     <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      {r.fileName} · {formatFileSize(r.fileSizeBytes)} · {formatDate(r.uploadedAt)}
+                      {r.type === 'MCQ'
+                        ? formatDate(r.uploadedAt)
+                        : `${r.fileName} · ${formatFileSize(r.fileSizeBytes)} · ${formatDate(r.uploadedAt)}`}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                    <a href={r.downloadUrl.startsWith('http') ? r.downloadUrl : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${r.downloadUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">
-                      Download
-                    </a>
+                    {r.type === 'MCQ' ? (
+                      <a href={r.formLink!} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">
+                        Open Form
+                      </a>
+                    ) : (
+                      <a href={r.downloadUrl!.startsWith('http') ? r.downloadUrl! : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${r.downloadUrl}`} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-primary">
+                        Download
+                      </a>
+                    )}
                     <button className="btn btn-sm" style={{ color: 'var(--danger)' }} onClick={() => handleDelete(r.id)}>
                       Delete
                     </button>
