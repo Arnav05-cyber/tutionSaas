@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
+
+  app.use(helmet());
 
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   const wwwFrontendUrl = frontendUrl.replace('https://', 'https://www.');

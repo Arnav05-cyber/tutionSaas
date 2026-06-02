@@ -138,9 +138,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
         </nav>
-        <div className="sidebar-footer" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <UserButton />
-          <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{user.fullName}</span>
+        <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <UserButton />
+            <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{user.fullName}</span>
+          </div>
+          <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: 'var(--text-muted)' }}>
+            <Link href="/privacy" target="_blank" style={{ color: 'var(--text-muted)' }}>Privacy</Link>
+            <Link href="/terms" target="_blank" style={{ color: 'var(--text-muted)' }}>Terms</Link>
+          </div>
         </div>
       </aside>
       <main className="main-content">

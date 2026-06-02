@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { AuditService } from '../audit/audit.service';
 import { Role } from '@prisma/client';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
+    private audit: AuditService,
   ) {}
 
   async onboard(
@@ -25,8 +27,12 @@ export class UsersService {
       inviteToken?: string;
       bio?: string;
       qualification?: string;
+      consentGiven?: boolean;
     },
   ) {
+    if (!dto.consentGiven) {
+      throw new BadRequestException('Consent to privacy policy is required');
+    }
     const role = dto.role.toUpperCase() as Role;
 
     if (role === Role.TEACHER) {
@@ -60,6 +66,7 @@ export class UsersService {
         grade: dto.grade || null,
         role,
         onboardingComplete: true,
+        consentGivenAt: new Date(),
         ...(teacherCode ? { teacherCode } : {}),
       },
     });
@@ -78,6 +85,7 @@ export class UsersService {
       await this.prisma.parentProfile.create({ data: { id: user.id } });
     }
 
+    await this.audit.log('USER_ONBOARDED', user.id, 'User', `role=${role}`);
     return user;
   }
 
@@ -174,6 +182,7 @@ export class UsersService {
 
     // 8. Delete user
     await this.prisma.user.delete({ where: { id: userId } });
+    await this.audit.log('USER_DELETED', undefined, 'User', `userId=${userId}`);
     console.log(`User ${userId} deleted successfully`);
   }
 

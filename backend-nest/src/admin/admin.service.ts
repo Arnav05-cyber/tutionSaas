@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 import { Role } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,6 +10,7 @@ export class AdminService {
   constructor(
     private prisma: PrismaService,
     private config: ConfigService,
+    private audit: AuditService,
   ) {}
 
   async generateTeacherInvite(teacherName?: string) {
@@ -19,6 +21,7 @@ export class AdminService {
       data: { token, used: false, expiresAt, teacherName: teacherName || null },
     });
 
+    await this.audit.log('INVITE_CREATED', undefined, 'TeacherInvite', `id=${invite.id}`);
     return toInviteResponse(invite, this.config.get('FRONTEND_URL'));
   }
 
@@ -26,6 +29,7 @@ export class AdminService {
     const invite = await this.prisma.teacherInvite.findUnique({ where: { id } });
     if (!invite) throw new NotFoundException('Invite not found');
     await this.prisma.teacherInvite.delete({ where: { id } });
+    await this.audit.log('INVITE_DELETED', undefined, 'TeacherInvite', `id=${id}`);
   }
 
   async getAllInvites() {
@@ -69,6 +73,7 @@ export class AdminService {
       where: { id: studentId },
       data: { blocked: true },
     });
+    await this.audit.log('STUDENT_BLOCKED', undefined, 'User', `studentId=${studentId}`);
   }
 
   async unblockStudent(studentId: number) {
@@ -79,6 +84,7 @@ export class AdminService {
       where: { id: studentId },
       data: { blocked: false },
     });
+    await this.audit.log('STUDENT_UNBLOCKED', undefined, 'User', `studentId=${studentId}`);
   }
 
   async setMonthlyFee(batchId: number, amount: number) {

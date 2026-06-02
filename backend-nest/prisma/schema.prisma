@@ -35,17 +35,18 @@ enum QueryStatus {
 }
 
 model User {
-  id                 Int      @id @default(autoincrement())
-  clerkId            String   @unique
+  id                 Int       @id @default(autoincrement())
+  clerkId            String    @unique
   fullName           String?
-  email              String?  @unique
+  email              String?   @unique
   phoneNumber        String?
   role               Role?
   grade              String?
-  blocked            Boolean  @default(false)
-  onboardingComplete Boolean  @default(false)
-  teacherCode        String?  @unique
-  createdAt          DateTime @default(now())
+  blocked            Boolean   @default(false)
+  onboardingComplete Boolean   @default(false)
+  teacherCode        String?   @unique
+  consentGivenAt     DateTime?
+  createdAt          DateTime  @default(now())
 
   teacherProfile  TeacherProfile?
   studentProfile  StudentProfile?
@@ -214,6 +215,15 @@ model TeacherInvite {
   used        Boolean   @default(false)
   createdAt   DateTime  @default(now())
   expiresAt   DateTime?
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String
+  target    String?
+  detail    String?
+  createdAt DateTime @default(now())
 }
 
 model BatchDoubt {

@@ -3,6 +3,7 @@
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import api from '@/lib/api';
 
 function OnboardingForm() {
@@ -24,6 +25,7 @@ function OnboardingForm() {
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState('');
+  const [consentGiven, setConsentGiven] = useState(false);
 
   useEffect(() => {
     let token = searchParams.get('invite') || '';
@@ -73,10 +75,14 @@ function OnboardingForm() {
     setError('');
 
     try {
+      if (!consentGiven) {
+        setError('You must accept the Privacy Policy to continue.');
+        return;
+      }
       const token = await getToken();
       const email = clerkUser?.primaryEmailAddress?.emailAddress ?? null;
       const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
-      const user = await api.post('/api/users/onboard', { ...form, fullName, email }, token);
+      const user = await api.post('/api/users/onboard', { ...form, fullName, email, consentGiven }, token);
       localStorage.removeItem('teacherInviteToken');
       redirectByRole(user.role);
     } catch (err: unknown) {
@@ -188,8 +194,29 @@ function OnboardingForm() {
             </div>
           )}
 
+          <div style={{ marginBottom: '16px', display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <input
+              type="checkbox"
+              id="consent"
+              checked={consentGiven}
+              onChange={e => setConsentGiven(e.target.checked)}
+              style={{ marginTop: '3px', flexShrink: 0, cursor: 'pointer' }}
+            />
+            <label htmlFor="consent" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.5', cursor: 'pointer' }}>
+              I have read and agree to the{' '}
+              <Link href="/privacy" target="_blank" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                Privacy Policy
+              </Link>{' '}
+              and{' '}
+              <Link href="/terms" target="_blank" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>
+                Terms of Service
+              </Link>
+              . I consent to EDUSHA collecting and processing my personal data as described therein.
+            </label>
+          </div>
+
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%' }}>
+            <button type="submit" className="btn btn-primary" disabled={loading || !consentGiven} style={{ width: '100%' }}>
               {loading ? 'Saving...' : 'Continue'}
             </button>
           </div>
