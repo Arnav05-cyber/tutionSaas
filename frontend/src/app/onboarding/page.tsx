@@ -13,7 +13,8 @@ function OnboardingForm() {
 
   const [hasInvite, setHasInvite] = useState(false);
   const [form, setForm] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     phoneNumber: '',
     role: 'STUDENT',
     grade: '',
@@ -74,7 +75,8 @@ function OnboardingForm() {
     try {
       const token = await getToken();
       const email = clerkUser?.primaryEmailAddress?.emailAddress ?? null;
-      const user = await api.post('/api/users/onboard', { ...form, email }, token);
+      const fullName = `${form.firstName.trim()} ${form.lastName.trim()}`;
+      const user = await api.post('/api/users/onboard', { ...form, fullName, email }, token);
       localStorage.removeItem('teacherInviteToken');
       redirectByRole(user.role);
     } catch (err: unknown) {
@@ -111,14 +113,25 @@ function OnboardingForm() {
         {error && <div className="alert alert-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="input-label">Full Name</label>
-            <input
-              className="input"
-              required
-              value={form.fullName}
-              onChange={e => setForm({ ...form, fullName: e.target.value })}
-            />
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="input-label">First Name</label>
+              <input
+                className="input"
+                required
+                value={form.firstName}
+                onChange={e => setForm({ ...form, firstName: e.target.value })}
+              />
+            </div>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="input-label">Last Name</label>
+              <input
+                className="input"
+                required
+                value={form.lastName}
+                onChange={e => setForm({ ...form, lastName: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="form-group">
