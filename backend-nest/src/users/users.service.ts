@@ -103,6 +103,17 @@ export class UsersService {
     return code;
   }
 
+  async ensureTeacherCode(user: any): Promise<any> {
+    if (user?.role !== Role.TEACHER || user.teacherCode || !user.fullName) {
+      return user;
+    }
+    const code = await this.generateUniqueTeacherCode(user.fullName);
+    return this.prisma.user.update({
+      where: { id: user.id },
+      data: { teacherCode: code },
+    });
+  }
+
   async updateEmail(clerkId: string, email?: string) {
     if (!email) {
       return this.prisma.user.findUnique({ where: { clerkId } });

@@ -27,9 +27,10 @@ export class UsersController {
   }
 
   @Get('me')
-  me(@CurrentUser() user: any) {
+  async me(@CurrentUser() user: any) {
     if (!user) throw new NotFoundException('User not found');
-    return toUserResponse(user);
+    const resolved = await this.usersService.ensureTeacherCode(user);
+    return toUserResponse(resolved);
   }
 
   @Patch('me')
