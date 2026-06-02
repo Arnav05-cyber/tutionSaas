@@ -42,6 +42,12 @@ export class AdminController {
     return this.adminService.getAllInvites();
   }
 
+  @Delete('invites/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteInvite(@Param('id', ParseIntPipe) id: number) {
+    await this.adminService.deleteInvite(id);
+  }
+
   @Get('users')
   async getUsersByRole(@Query('role') role: string) {
     const r = role.toUpperCase() as Role;

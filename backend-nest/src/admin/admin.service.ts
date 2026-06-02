@@ -22,6 +22,12 @@ export class AdminService {
     return toInviteResponse(invite, this.config.get('FRONTEND_URL'));
   }
 
+  async deleteInvite(id: number) {
+    const invite = await this.prisma.teacherInvite.findUnique({ where: { id } });
+    if (!invite) throw new NotFoundException('Invite not found');
+    await this.prisma.teacherInvite.delete({ where: { id } });
+  }
+
   async getAllInvites() {
     const invites = await this.prisma.teacherInvite.findMany({
       orderBy: { createdAt: 'desc' },

@@ -22,6 +22,7 @@ export default function InvitesPage() {
 
   const [showModal, setShowModal] = useState(false);
   const [teacherName, setTeacherName] = useState('');
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     loadInvites();
@@ -44,6 +45,18 @@ export default function InvitesPage() {
       await loadInvites();
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function deleteInvite(invite: Invite) {
+    if (!confirm(`Delete invite${invite.teacherName ? ` for ${invite.teacherName}` : ''}? This cannot be undone.`)) return;
+    setDeletingId(invite.id);
+    try {
+      const token = await getToken();
+      await api.delete(`/api/admin/invites/${invite.id}`, token);
+      setInvites(prev => prev.filter(i => i.id !== invite.id));
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -104,11 +117,12 @@ export default function InvitesPage() {
                 <th>Created</th>
                 <th>Expires</th>
                 <th>Link</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {invites.length === 0 && (
-                <tr><td colSpan={5} className="empty-state"><p>No invites yet</p></td></tr>
+                <tr><td colSpan={6} className="empty-state"><p>No invites yet</p></td></tr>
               )}
               {invites.map(invite => (
                 <tr key={invite.id}>
@@ -133,6 +147,15 @@ export default function InvitesPage() {
                       disabled={invite.used}
                     >
                       {copied === invite.id ? 'Copied!' : 'Copy Link'}
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => deleteInvite(invite)}
+                      disabled={deletingId === invite.id}
+                    >
+                      {deletingId === invite.id ? 'Deleting...' : 'Delete'}
                     </button>
                   </td>
                 </tr>
