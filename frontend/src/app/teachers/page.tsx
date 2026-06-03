@@ -61,32 +61,46 @@ export default function TeachersPage() {
           padding: 14px 18px;
           transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .tp-cred-card:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
+        .tp-cred-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+
         .tp-spec-item {
-          display: flex;
-          align-items: flex-start;
-          gap: 10px;
-          padding: 10px 0;
-          border-bottom: 1px solid #F4F4F5;
-          font-size: 14px;
-          color: #3F3F46;
-          line-height: 1.5;
+          display: flex; align-items: flex-start; gap: 10px;
+          padding: 10px 0; border-bottom: 1px solid #F4F4F5;
+          font-size: 14px; color: #3F3F46; line-height: 1.5;
         }
         .tp-spec-item:last-child { border-bottom: none; }
         .tp-spec-dot {
-          width: 6px; height: 6px;
-          background: #09090B;
-          border-radius: 50%;
-          flex-shrink: 0;
-          margin-top: 6px;
+          width: 6px; height: 6px; background: #09090B;
+          border-radius: 50%; flex-shrink: 0; margin-top: 6px;
         }
+
+        /* Main 2-col grid */
+        .tp-main-grid {
+          display: grid;
+          grid-template-columns: 1fr 300px;
+          gap: 24px;
+          align-items: start;
+        }
+
+        /* Stats 2×2 */
+        .tp-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); }
+
+        /* Credentials 2-col */
+        .tp-creds-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+        /* Card padding helper */
+        .tp-card { background: #fff; border: 1px solid #E4E4E7; border-radius: 12px; padding: 24px; }
+
         @media (max-width: 768px) {
-          .tp-main-grid { grid-template-columns: 1fr !important; }
-          .tp-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .tp-creds-grid { grid-template-columns: 1fr !important; }
+          .tp-main-grid { grid-template-columns: 1fr; }
+          .tp-creds-grid { grid-template-columns: 1fr; }
+          .tp-card { padding: 16px; }
+
+          /* On mobile, right sidebar renders after left column naturally */
+        }
+
+        @media (max-width: 480px) {
+          .tp-spec-item { font-size: 13px; }
         }
       `}</style>
 
@@ -101,38 +115,38 @@ export default function TeachersPage() {
         </header>
 
         {/* ── Hero strip ── */}
-        <div style={{ background: '#09090B', color: '#fff', padding: '48px 0 40px' }}>
+        <div style={{ background: '#09090B', color: '#fff', padding: 'clamp(32px, 6vw, 48px) 0 clamp(28px, 5vw, 40px)' }}>
           <div className="container">
             <div style={{ display: 'inline-block', background: '#ffffff14', border: '1px solid #ffffff22', borderRadius: '99px', padding: '5px 14px', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#ffffffaa', marginBottom: '16px' }}>
               Our Educator
             </div>
-            <h1 style={{ fontSize: 'clamp(24px, 5vw, 40px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: '12px' }}>
+            <h1 style={{ fontSize: 'clamp(22px, 5vw, 40px)', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1.15, marginBottom: '12px' }}>
               English Educator
             </h1>
-            <p style={{ fontSize: '15px', color: '#ffffffbb', maxWidth: '560px', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 'clamp(13px, 2vw, 15px)', color: '#ffffffbb', maxWidth: '560px', lineHeight: 1.6 }}>
               {EDUCATOR.tagline}
             </p>
           </div>
         </div>
 
         {/* ── Main content ── */}
-        <div className="container" style={{ padding: '40px 24px' }}>
-          <div className="tp-main-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '28px', alignItems: 'start' }}>
+        <div className="container" style={{ padding: '32px 24px 0' }}>
+          <div className="tp-main-grid">
 
             {/* ── Left column ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
               {/* About */}
-              <div style={{ background: '#fff', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '28px', borderLeft: '4px solid #09090B' }}>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>About</h2>
-                <p style={{ fontSize: '15px', color: '#3F3F46', lineHeight: 1.8, marginBottom: '16px' }}>{EDUCATOR.bio}</p>
+              <div className="tp-card" style={{ borderLeft: '4px solid #09090B' }}>
+                <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '14px' }}>About</h2>
+                <p style={{ fontSize: '15px', color: '#3F3F46', lineHeight: 1.8, marginBottom: '14px' }}>{EDUCATOR.bio}</p>
                 <p style={{ fontSize: '15px', color: '#3F3F46', lineHeight: 1.8 }}>{EDUCATOR.approach}</p>
               </div>
 
               {/* Credentials */}
               <div>
-                <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Credentials & Qualifications</h2>
-                <div className="tp-creds-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '14px' }}>Credentials & Qualifications</h2>
+                <div className="tp-creds-grid">
                   {EDUCATOR.credentials.map((c, i) => (
                     <div key={i} className="tp-cred-card">
                       <div style={{ fontSize: '14px', fontWeight: 700, marginBottom: '3px' }}>{c.label}</div>
@@ -143,29 +157,31 @@ export default function TeachersPage() {
               </div>
 
               {/* Specialisations */}
-              <div style={{ background: '#fff', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '28px' }}>
+              <div className="tp-card">
                 <h2 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>Areas of Specialisation</h2>
-                <div>
-                  {EDUCATOR.specialisations.map((s, i) => (
-                    <div key={i} className="tp-spec-item">
-                      <div className="tp-spec-dot" />
-                      {s}
-                    </div>
-                  ))}
-                </div>
+                {EDUCATOR.specialisations.map((s, i) => (
+                  <div key={i} className="tp-spec-item">
+                    <div className="tp-spec-dot" />
+                    {s}
+                  </div>
+                ))}
               </div>
 
             </div>
 
             {/* ── Right column ── */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-              {/* Stats */}
+              {/* Stats 2×2 */}
               <div style={{ background: '#fff', border: '1px solid #E4E4E7', borderRadius: '12px', overflow: 'hidden' }}>
-                <div className="tp-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                <div className="tp-stats-grid">
                   {EDUCATOR.stats.map((s, i) => (
-                    <div key={i} style={{ padding: '20px', borderRight: i % 2 === 0 ? '1px solid #E4E4E7' : 'none', borderBottom: i < 2 ? '1px solid #E4E4E7' : 'none' }}>
-                      <div style={{ fontSize: '22px', fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1 }}>{s.value}</div>
+                    <div key={i} style={{
+                      padding: '18px 16px',
+                      borderRight: i % 2 === 0 ? '1px solid #E4E4E7' : 'none',
+                      borderBottom: i < 2 ? '1px solid #E4E4E7' : 'none',
+                    }}>
+                      <div style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.5px', lineHeight: 1 }}>{s.value}</div>
                       <div style={{ fontSize: '12px', color: '#71717A', marginTop: '4px', fontWeight: 500 }}>{s.label}</div>
                     </div>
                   ))}
@@ -173,8 +189,8 @@ export default function TeachersPage() {
               </div>
 
               {/* Exams covered */}
-              <div style={{ background: '#fff', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '20px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#71717A', marginBottom: '14px' }}>Exams Covered</h3>
+              <div className="tp-card">
+                <h3 style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: '#71717A', marginBottom: '12px' }}>Exams Covered</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {EDUCATOR.examsCovered.map((e, i) => (
                     <span key={i} className="badge" style={{ fontSize: '13px' }}>{e}</span>
@@ -182,12 +198,12 @@ export default function TeachersPage() {
                 </div>
               </div>
 
-              {/* Demo class notice — informational only, no sign-up push */}
+              {/* Demo class notice */}
               {demoClass && spotsLeft > 0 && (
-                <div style={{ background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '20px' }}>
+                <div style={{ background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '16px' }}>
                   <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>Demo Class Available</div>
                   <p style={{ fontSize: '13px', color: '#3F3F46', lineHeight: 1.6 }}>
-                    A free demo class is currently scheduled for Grade {demoClass.grade}th — {spotsLeft} spot{spotsLeft === 1 ? '' : 's'} remaining.
+                    Free demo class scheduled for Grade {demoClass.grade}th — {spotsLeft} spot{spotsLeft === 1 ? '' : 's'} remaining.
                   </p>
                   <Link href="/" style={{ fontSize: '13px', color: '#09090B', fontWeight: 600, display: 'inline-block', marginTop: '10px' }}>
                     Learn more →
