@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Patch,
@@ -78,6 +79,7 @@ export class SessionsController {
 
   @Delete('api/sessions/:id')
   @Roles(Role.TEACHER, Role.ADMIN)
+  @HttpCode(204)
   async deleteSession(
     @Param('id', ParseIntPipe) id: number,
     @ClerkId() clerkId: string,

@@ -58,7 +58,7 @@ function getNextDateForDay(dayOfWeek: string): string {
   const today = new Date();
   const todayDay = today.getDay();
   let diff = target - todayDay;
-  if (diff <= 0) diff += 7;
+  if (diff < 0) diff += 7;
   const nextDate = new Date(today);
   nextDate.setDate(today.getDate() + diff);
   const yyyy = nextDate.getFullYear();
@@ -368,10 +368,10 @@ export default function BatchDetailPage() {
                     {past && !active && (
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Session ended</span>
                     )}
-                    {!active && !past && s.googleMeetLink && (
+                    {!active && !past && s.platform === 'EXTERNAL' && s.googleMeetLink && (
                       <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Link active at start time</span>
                     )}
-                    {!active && !past && s.status === 'SCHEDULED' && (
+                    {s.status === 'SCHEDULED' && (
                       <>
                         <button className="btn btn-sm" onClick={() => openReschedule(s)}>
                           Reschedule
