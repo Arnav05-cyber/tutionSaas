@@ -1,6 +1,7 @@
 'use client';
 
 import { SignUp } from '@clerk/nextjs';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 
@@ -16,15 +17,14 @@ function SignUpForm() {
   }, [invite]);
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'var(--surface)',
-      gap: '24px'
-    }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}>
+      <header style={{ borderBottom: '1px solid var(--border)', padding: '16px 0' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '1px' }}>EDUSHA</span>
+          <Link href="/" className="btn" style={{ fontSize: '13px' }}>← Back to Home</Link>
+        </div>
+      </header>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', gap: '24px' }}>
       {invite && (
         <div style={{ textAlign: 'center', maxWidth: '400px', padding: '0 16px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--primary)', marginBottom: '8px' }}>
@@ -36,6 +36,7 @@ function SignUpForm() {
         </div>
       )}
       <SignUp fallbackRedirectUrl={redirectUrl} />
+      </div>
     </div>
   );
 }
