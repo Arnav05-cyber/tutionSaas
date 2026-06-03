@@ -33,22 +33,38 @@ const FEATURES = [
   },
 ];
 
-const EDUCATOR = {
-  credentials: ['PGT English', 'CBSE Certified Trainer (ToT)', 'Head of Department', 'Delhi University PG'],
-  stats: [
-    { value: '25+', label: 'Years Teaching' },
-    { value: 'CBSE', label: '10 & 12 Board' },
-    { value: 'IELTS', label: '& CUET' },
-  ],
-  excerpt:
-    'A student-centred approach combining conceptual clarity, structured writing practice, and personalised feedback — delivering consistent results across board, competitive, and international examinations.',
-};
+const HOME_EDUCATORS = [
+  {
+    credentials: ['PGT English', 'CBSE Certified Trainer (ToT)', 'Head of Department', 'Delhi University PG'],
+    subject: 'English · CBSE · IELTS · CUET',
+    stats: [
+      { value: '25+', label: 'Years Teaching' },
+      { value: 'CBSE', label: '10 & 12 Board' },
+      { value: 'IELTS', label: '& CUET' },
+    ],
+    excerpt: 'A student-centred approach combining conceptual clarity, structured writing practice, and personalised feedback — delivering consistent results across board, competitive, and international examinations.',
+    href: '/teachers#educator-0',
+  },
+  {
+    credentials: ['PG English', 'PG Political Science', 'NCERT Diploma', 'Content Developer'],
+    subject: 'English · Literature · Language Development',
+    stats: [
+      { value: '3+', label: 'Years Teaching' },
+      { value: 'NCERT', label: 'Content Dev.' },
+      { value: '6–12', label: 'School Levels' },
+    ],
+    excerpt: 'A passionate educator with postgraduate qualifications in English and Political Science, contributing to educational content development and digital learning initiatives through NCERT.',
+    href: '/teachers#educator-1',
+  },
+];
 
 
 export default function LandingPage() {
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const [demoClass, setDemoClass] = useState<PublicDemoClass | null>(null);
+  const [stackOpen, setStackOpen] = useState(false);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -299,57 +315,94 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ── Educator card ── */}
+        {/* ── Educator stack ── */}
         <section className="lp-educator-section" style={{ padding: '0 0 72px' }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: '32px' }} className="lp-animate">
               <div className="lp-section-label">Our Educators</div>
               <div className="lp-section-title">Expert guidance, proven results</div>
+              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Hover to explore · Click to view full profile</p>
             </div>
 
-            <div className="lp-animate lp-card-hover lp-educator-card" style={{ background: '#fff', border: '1px solid #E4E4E7', borderRadius: '16px', padding: '32px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', borderLeft: '4px solid #09090B', maxWidth: '860px', margin: '0 auto' }}>
-              <div className="lp-educator-inner">
-
-                {/* Left */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-                    {EDUCATOR.credentials.map((c, i) => (
-                      <span key={i} className="lp-cred">{c}</span>
-                    ))}
-                  </div>
-                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '8px' }}>
-                    English · CBSE · IELTS · CUET
-                  </p>
-                  <p style={{ fontSize: '15px', color: '#3F3F46', lineHeight: 1.75, marginBottom: '20px' }}>
-                    {EDUCATOR.excerpt}
-                  </p>
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <Link href="/teachers" className="btn btn-primary" style={{ fontSize: '14px' }}>
-                      View All Educators
-                    </Link>
-                    {demoClass && spotsLeft > 0 ? (
-                      <button className="btn" onClick={handleBannerClick} style={{ fontSize: '14px' }}>
-                        Book a Demo Class
-                      </button>
-                    ) : (
-                      <Link href="/sign-up" className="btn" style={{ fontSize: '14px' }}>
-                        Join a Batch
-                      </Link>
-                    )}
-                  </div>
-                </div>
-
-                {/* Right — stats */}
-                <div className="lp-educator-stats">
-                  {EDUCATOR.stats.map((s, i) => (
-                    <div key={i} className="lp-educator-stat-item">
-                      <div className="lp-educator-stat-value">{s.value}</div>
-                      <div className="lp-educator-stat-label">{s.label}</div>
+            <div
+              className="lp-animate"
+              style={{ maxWidth: '860px', margin: '0 auto', position: 'relative' }}
+              onMouseEnter={() => setStackOpen(true)}
+              onMouseLeave={() => { setStackOpen(false); setHoveredIdx(null); }}
+            >
+              {HOME_EDUCATORS.map((edu, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => router.push(edu.href)}
+                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                  style={{
+                    background: '#fff',
+                    border: '1px solid #E4E4E7',
+                    borderLeft: '4px solid #09090B',
+                    borderRadius: '16px',
+                    padding: '32px',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    zIndex: 2 - idx,
+                    marginTop: idx === 0 ? 0 : stackOpen ? '16px' : '-148px',
+                    transform: hoveredIdx === idx
+                      ? 'translateY(-6px)'
+                      : idx === 1 && !stackOpen
+                        ? 'scale(0.97)'
+                        : 'none',
+                    boxShadow: hoveredIdx === idx
+                      ? '0 16px 40px rgba(0,0,0,0.13)'
+                      : '0 2px 8px rgba(0,0,0,0.06)',
+                    transition: 'margin-top 0.38s ease, transform 0.28s ease, box-shadow 0.28s ease',
+                  }}
+                >
+                  <div className="lp-educator-inner">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                        {edu.credentials.map((c, i) => (
+                          <span key={i} className="lp-cred">{c}</span>
+                        ))}
+                      </div>
+                      <p style={{ fontSize: '13px', fontWeight: 600, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '8px' }}>
+                        {edu.subject}
+                      </p>
+                      <p style={{ fontSize: '15px', color: '#3F3F46', lineHeight: 1.75, marginBottom: '20px' }}>
+                        {edu.excerpt}
+                      </p>
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                        <Link
+                          href={edu.href}
+                          className="btn btn-primary"
+                          style={{ fontSize: '14px' }}
+                          onClick={e => e.stopPropagation()}
+                        >
+                          View Full Profile
+                        </Link>
+                        {idx === 0 && demoClass && spotsLeft > 0 && (
+                          <button className="btn" onClick={e => { e.stopPropagation(); handleBannerClick(); }} style={{ fontSize: '14px' }}>
+                            Book a Demo Class
+                          </button>
+                        )}
+                        {idx === 0 && !(demoClass && spotsLeft > 0) && (
+                          <Link href="/sign-up" className="btn" style={{ fontSize: '14px' }} onClick={e => e.stopPropagation()}>
+                            Join a Batch
+                          </Link>
+                        )}
+                      </div>
                     </div>
-                  ))}
-                </div>
 
-              </div>
+                    <div className="lp-educator-stats">
+                      {edu.stats.map((s, i) => (
+                        <div key={i} className="lp-educator-stat-item">
+                          <div className="lp-educator-stat-value">{s.value}</div>
+                          <div className="lp-educator-stat-label">{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>

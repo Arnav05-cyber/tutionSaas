@@ -164,7 +164,7 @@ export default function TeachersPage() {
         <div className="container" style={{ padding: '32px 24px 0', display: 'flex', flexDirection: 'column', gap: '40px' }}>
 
           {EDUCATORS.map((edu, idx) => (
-            <div key={idx}>
+            <div key={idx} id={`educator-${idx}`} style={{ scrollMarginTop: '80px' }}>
               {idx > 0 && <div style={{ borderTop: '1px solid #E4E4E7', marginBottom: '40px' }} />}
               <div className="tp-main-grid">
 
