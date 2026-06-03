@@ -1,8 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 
@@ -45,22 +43,11 @@ const EDUCATOR = {
 };
 
 export default function TeachersPage() {
-  const { isSignedIn } = useAuth();
-  const router = useRouter();
   const [demoClass, setDemoClass] = useState<PublicDemoClass | null>(null);
 
   useEffect(() => {
     api.get('/api/public/demo-class').then(setDemoClass).catch(() => null);
   }, []);
-
-  function handleDemoClick() {
-    if (isSignedIn) {
-      router.push('/dashboard/student/demo-class');
-    } else {
-      if (typeof window !== 'undefined') localStorage.setItem('pendingDemoRedirect', '1');
-      router.push('/sign-up');
-    }
-  }
 
   const spotsLeft = demoClass ? demoClass.capacity - demoClass.enrolledCount : 0;
 
@@ -109,19 +96,13 @@ export default function TeachersPage() {
         <header style={{ background: '#fff', borderBottom: '1px solid #E4E4E7', padding: '16px 0', position: 'sticky', top: 0, zIndex: 40 }}>
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Link href="/" style={{ fontSize: '18px', fontWeight: 800, letterSpacing: '1px', color: '#09090B' }}>EDUSHA</Link>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Link href="/sign-in" className="btn">Sign In</Link>
-              <Link href="/sign-up" className="btn btn-primary">Join Free</Link>
-            </div>
+            <Link href="/" className="btn" style={{ fontSize: '13px' }}>← Back to Home</Link>
           </div>
         </header>
 
         {/* ── Hero strip ── */}
         <div style={{ background: '#09090B', color: '#fff', padding: '48px 0 40px' }}>
           <div className="container">
-            <Link href="/" style={{ fontSize: '13px', color: '#71717A', display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
-              ← Back to Home
-            </Link>
             <div style={{ display: 'inline-block', background: '#ffffff14', border: '1px solid #ffffff22', borderRadius: '99px', padding: '5px 14px', fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#ffffffaa', marginBottom: '16px' }}>
               Our Educator
             </div>
@@ -201,23 +182,18 @@ export default function TeachersPage() {
                 </div>
               </div>
 
-              {/* CTA card */}
-              <div style={{ background: '#09090B', borderRadius: '12px', padding: '24px', color: '#fff' }}>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>Ready to get started?</h3>
-                <p style={{ fontSize: '13px', color: '#ffffffbb', lineHeight: 1.6, marginBottom: '20px' }}>
-                  {demoClass && spotsLeft > 0
-                    ? `A free demo class is available for Grade ${demoClass.grade}th. ${spotsLeft} spot${spotsLeft === 1 ? '' : 's'} remaining.`
-                    : 'Join a batch and start your learning journey with expert guidance.'}
-                </p>
-                {demoClass && spotsLeft > 0 ? (
-                  <button onClick={handleDemoClick} className="btn" style={{ width: '100%', background: '#fff', color: '#09090B', border: 'none', fontWeight: 700, marginBottom: '10px' }}>
-                    Book Free Demo Class
-                  </button>
-                ) : null}
-                <Link href="/sign-up" className="btn" style={{ width: '100%', display: 'block', textAlign: 'center', background: 'transparent', color: '#fff', border: '1px solid #ffffff33' }}>
-                  {demoClass && spotsLeft > 0 ? 'Or Sign Up for a Batch' : 'Sign Up for Free'}
-                </Link>
-              </div>
+              {/* Demo class notice — informational only, no sign-up push */}
+              {demoClass && spotsLeft > 0 && (
+                <div style={{ background: '#F4F4F5', border: '1px solid #E4E4E7', borderRadius: '12px', padding: '20px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#71717A', marginBottom: '8px' }}>Demo Class Available</div>
+                  <p style={{ fontSize: '13px', color: '#3F3F46', lineHeight: 1.6 }}>
+                    A free demo class is currently scheduled for Grade {demoClass.grade}th — {spotsLeft} spot{spotsLeft === 1 ? '' : 's'} remaining.
+                  </p>
+                  <Link href="/" style={{ fontSize: '13px', color: '#09090B', fontWeight: 600, display: 'inline-block', marginTop: '10px' }}>
+                    Learn more →
+                  </Link>
+                </div>
+              )}
 
             </div>
           </div>
