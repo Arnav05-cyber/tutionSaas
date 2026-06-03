@@ -50,7 +50,6 @@ export default function LiveClassPage() {
           return;
         }
 
-        // Check if session is within the joinable window (15 min before start → end)
         const now = new Date();
         const start = new Date(data.scheduledAt);
         const end = new Date(data.endTime);
@@ -69,8 +68,6 @@ export default function LiveClassPage() {
         }
 
         setSessionInfo(data);
-
-        // Fetching token also logs student join and auto-marks attendance
         const creds = await api.get(`/api/sessions/${id}/livekit-token`, token);
         setCredentials(creds);
       } catch (err) {
@@ -119,38 +116,19 @@ export default function LiveClassPage() {
   }
 
   return (
-    <>
-      {/* Scoped style reset: undo globals inside LiveKit */}
-      <style>{`
-        .lk-room-container,
-        .lk-room-container * {
-          all: revert;
-          box-sizing: border-box;
-        }
-        .lk-room-container {
-          position: fixed !important;
-          top: 0 !important;
-          left: 0 !important;
-          right: 0 !important;
-          bottom: 0 !important;
-          z-index: 9999 !important;
-          background: #111 !important;
-        }
-      `}</style>
-      <div className="lk-room-container">
-        <LiveKitRoom
-          video={true}
-          audio={true}
-          token={credentials.token}
-          serverUrl={credentials.url}
-          data-lk-theme="default"
-          style={{ height: '100dvh', width: '100vw' }}
-          onDisconnected={() => router.push('/dashboard')}
-        >
-          <VideoConference />
-          <RoomAudioRenderer />
-        </LiveKitRoom>
-      </div>
-    </>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: '#111' }}>
+      <LiveKitRoom
+        video={true}
+        audio={true}
+        token={credentials.token}
+        serverUrl={credentials.url}
+        data-lk-theme="default"
+        style={{ height: '100%', width: '100%' }}
+        onDisconnected={() => router.push('/dashboard')}
+      >
+        <VideoConference />
+        <RoomAudioRenderer />
+      </LiveKitRoom>
+    </div>
   );
 }
