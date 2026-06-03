@@ -328,7 +328,9 @@ export default function LandingPage() {
                   onClick={() => router.push(edu.href)}
                   onMouseEnter={() => setHoveredIdx(idx)}
                   style={{
-                    left: idx === 0 ? 0 : stackOpen ? 'calc(50% + 12px)' : '8%',
+                    left: idx === 0
+                      ? (stackOpen ? 0 : 'calc(21% + 6px)')
+                      : (stackOpen ? 'calc(50% + 12px)' : 'calc(29% + 6px)'),
                     zIndex: idx === 0 ? 2 : 1,
                     boxShadow: hoveredIdx === idx
                       ? '0 16px 40px rgba(0,0,0,0.13)'
