@@ -63,7 +63,6 @@ export default function LandingPage() {
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const [demoClass, setDemoClass] = useState<PublicDemoClass | null>(null);
-  const [stackOpen, setStackOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -173,16 +172,15 @@ export default function LandingPage() {
         .lp-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
         /* Educator card inner layout */
-        .lp-educator-inner { display: flex; gap: 32px; align-items: flex-start; }
+        .lp-educator-inner { display: flex; flex-direction: column; height: 100%; }
         .lp-educator-stats {
-          display: flex; flex-direction: column;
-          min-width: 150px; background: #F4F4F5;
-          border-radius: 12px; overflow: hidden; flex-shrink: 0;
+          display: flex; flex-direction: row;
+          background: #F4F4F5; border-radius: 10px; overflow: hidden;
         }
-        .lp-educator-stat-item { padding: 18px 20px; }
-        .lp-educator-stat-item + .lp-educator-stat-item { border-top: 1px solid #E4E4E7; }
-        .lp-educator-stat-value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
-        .lp-educator-stat-label { font-size: 11px; color: #71717A; margin-top: 2px; font-weight: 500; }
+        .lp-educator-stat-item { flex: 1; padding: 12px 10px; text-align: center; }
+        .lp-educator-stat-item + .lp-educator-stat-item { border-left: 1px solid #E4E4E7; }
+        .lp-educator-stat-value { font-size: 15px; font-weight: 800; letter-spacing: -0.5px; }
+        .lp-educator-stat-label { font-size: 10px; color: #71717A; margin-top: 2px; font-weight: 500; }
 
         /* ── Mobile ── */
         @media (max-width: 768px) {
@@ -196,16 +194,9 @@ export default function LandingPage() {
           /* Features: single column */
           .lp-features-grid { grid-template-columns: 1fr; }
 
-          /* Educator card: stack, stats go horizontal */
-          .lp-educator-inner { flex-direction: column; gap: 20px; }
-          .lp-educator-stats {
-            flex-direction: row; width: 100%; min-width: unset;
-          }
-          .lp-educator-stat-item { flex: 1; padding: 14px 10px; text-align: center; }
-          .lp-educator-stat-item + .lp-educator-stat-item {
-            border-top: none; border-left: 1px solid #E4E4E7;
-          }
-          .lp-educator-stat-value { font-size: 16px; }
+          /* Educator grid: single column on mobile */
+          .lp-educator-grid { grid-template-columns: 1fr !important; }
+          .lp-educator-card { aspect-ratio: unset !important; }
 
           /* Section padding */
           .lp-features-section { padding: 48px 0 !important; }
@@ -215,12 +206,6 @@ export default function LandingPage() {
         }
 
         @media (max-width: 480px) {
-          /* Educator stats stay as column on very small phones */
-          .lp-educator-stats { flex-direction: column !important; }
-          .lp-educator-stat-item { text-align: left !important; }
-          .lp-educator-stat-item + .lp-educator-stat-item {
-            border-left: none !important; border-top: 1px solid #E4E4E7 !important;
-          }
           /* Hide Sign In button — only show Join Free */
           .lp-nav-signin { display: none !important; }
         }
@@ -321,84 +306,77 @@ export default function LandingPage() {
             <div style={{ textAlign: 'center', marginBottom: '32px' }} className="lp-animate">
               <div className="lp-section-label">Our Educators</div>
               <div className="lp-section-title">Expert guidance, proven results</div>
-              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Hover to explore · Click to view full profile</p>
+              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Click to view full profile</p>
             </div>
 
             <div
-              className="lp-animate"
-              style={{ maxWidth: '860px', margin: '0 auto', position: 'relative' }}
-              onMouseEnter={() => setStackOpen(true)}
-              onMouseLeave={() => { setStackOpen(false); setHoveredIdx(null); }}
+              className="lp-animate lp-educator-grid"
+              style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', maxWidth: '860px', margin: '0 auto' }}
+              onMouseLeave={() => setHoveredIdx(null)}
             >
               {HOME_EDUCATORS.map((edu, idx) => (
                 <div
                   key={idx}
+                  className="lp-educator-card"
                   onClick={() => router.push(edu.href)}
                   onMouseEnter={() => setHoveredIdx(idx)}
-                  onMouseLeave={() => setHoveredIdx(null)}
                   style={{
                     background: '#fff',
                     border: '1px solid #E4E4E7',
-                    borderLeft: '4px solid #09090B',
+                    borderTop: '4px solid #09090B',
                     borderRadius: '16px',
-                    padding: '32px',
+                    padding: '28px',
                     cursor: 'pointer',
-                    position: 'relative',
-                    zIndex: 2 - idx,
-                    marginTop: idx === 0 ? 0 : stackOpen ? '16px' : '-148px',
-                    transform: hoveredIdx === idx
-                      ? 'translateY(-6px)'
-                      : idx === 1 && !stackOpen
-                        ? 'scale(0.97)'
-                        : 'none',
+                    aspectRatio: '1',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                    transform: hoveredIdx === idx ? 'translateY(-6px)' : 'none',
                     boxShadow: hoveredIdx === idx
                       ? '0 16px 40px rgba(0,0,0,0.13)'
                       : '0 2px 8px rgba(0,0,0,0.06)',
-                    transition: 'margin-top 0.38s ease, transform 0.28s ease, box-shadow 0.28s ease',
+                    transition: 'transform 0.28s ease, box-shadow 0.28s ease',
                   }}
                 >
                   <div className="lp-educator-inner">
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-                        {edu.credentials.map((c, i) => (
-                          <span key={i} className="lp-cred">{c}</span>
-                        ))}
-                      </div>
-                      <p style={{ fontSize: '13px', fontWeight: 600, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '8px' }}>
-                        {edu.subject}
-                      </p>
-                      <p style={{ fontSize: '15px', color: '#3F3F46', lineHeight: 1.75, marginBottom: '20px' }}>
-                        {edu.excerpt}
-                      </p>
-                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                        <Link
-                          href={edu.href}
-                          className="btn btn-primary"
-                          style={{ fontSize: '14px' }}
-                          onClick={e => e.stopPropagation()}
-                        >
-                          View Full Profile
-                        </Link>
-                        {idx === 0 && demoClass && spotsLeft > 0 && (
-                          <button className="btn" onClick={e => { e.stopPropagation(); handleBannerClick(); }} style={{ fontSize: '14px' }}>
-                            Book a Demo Class
-                          </button>
-                        )}
-                        {idx === 0 && !(demoClass && spotsLeft > 0) && (
-                          <Link href="/sign-up" className="btn" style={{ fontSize: '14px' }} onClick={e => e.stopPropagation()}>
-                            Join a Batch
-                          </Link>
-                        )}
-                      </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+                      {edu.credentials.map((c, i) => (
+                        <span key={i} className="lp-cred">{c}</span>
+                      ))}
                     </div>
-
-                    <div className="lp-educator-stats">
+                    <p style={{ fontSize: '12px', fontWeight: 600, color: '#71717A', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
+                      {edu.subject}
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#3F3F46', lineHeight: 1.65, flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' } as React.CSSProperties}>
+                      {edu.excerpt}
+                    </p>
+                    <div className="lp-educator-stats" style={{ marginTop: '16px' }}>
                       {edu.stats.map((s, i) => (
                         <div key={i} className="lp-educator-stat-item">
                           <div className="lp-educator-stat-value">{s.value}</div>
                           <div className="lp-educator-stat-label">{s.label}</div>
                         </div>
                       ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '14px' }}>
+                      <Link
+                        href={edu.href}
+                        className="btn btn-primary"
+                        style={{ fontSize: '13px', padding: '8px 16px' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        View Full Profile
+                      </Link>
+                      {idx === 0 && demoClass && spotsLeft > 0 && (
+                        <button className="btn" onClick={e => { e.stopPropagation(); handleBannerClick(); }} style={{ fontSize: '13px', padding: '8px 16px' }}>
+                          Book a Demo Class
+                        </button>
+                      )}
+                      {idx === 0 && !(demoClass && spotsLeft > 0) && (
+                        <Link href="/sign-up" className="btn" style={{ fontSize: '13px', padding: '8px 16px' }} onClick={e => e.stopPropagation()}>
+                          Join a Batch
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
