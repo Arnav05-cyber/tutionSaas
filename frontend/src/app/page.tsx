@@ -63,6 +63,7 @@ export default function LandingPage() {
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const [demoClass, setDemoClass] = useState<PublicDemoClass | null>(null);
+  const [stackOpen, setStackOpen] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -171,7 +172,14 @@ export default function LandingPage() {
         /* Features grid */
         .lp-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
-        /* Educator card inner layout */
+        /* Educator horizontal deck */
+        .lp-educator-deck { position: relative; max-width: 860px; margin: 0 auto; aspect-ratio: 2/1; }
+        .lp-educator-card {
+          position: absolute; top: 0; height: 100%; width: calc(50% - 12px);
+          display: flex; flex-direction: column; overflow: hidden;
+          background: #fff; border: 1px solid #E4E4E7; border-top: 4px solid #09090B;
+          border-radius: 16px; padding: 28px; cursor: pointer;
+        }
         .lp-educator-inner { display: flex; flex-direction: column; height: 100%; }
         .lp-educator-stats {
           display: flex; flex-direction: row;
@@ -194,15 +202,14 @@ export default function LandingPage() {
           /* Features: single column */
           .lp-features-grid { grid-template-columns: 1fr; }
 
-          /* Educator grid: single column on mobile */
-          .lp-educator-grid { grid-template-columns: 1fr !important; }
-          .lp-educator-card { aspect-ratio: unset !important; }
+          /* Educator deck: stack vertically on mobile */
+          .lp-educator-deck { aspect-ratio: unset; display: flex; flex-direction: column; gap: 16px; }
+          .lp-educator-card { position: relative; width: 100%; height: auto; aspect-ratio: 1; top: auto; left: auto !important; z-index: auto !important; transform: none !important; }
 
           /* Section padding */
           .lp-features-section { padding: 48px 0 !important; }
           .lp-educator-section { padding: 0 0 48px !important; }
           .lp-cta-section { padding: 48px 0 !important; }
-          .lp-educator-card { padding: 20px !important; }
         }
 
         @media (max-width: 480px) {
@@ -306,13 +313,13 @@ export default function LandingPage() {
             <div style={{ textAlign: 'center', marginBottom: '32px' }} className="lp-animate">
               <div className="lp-section-label">Our Educators</div>
               <div className="lp-section-title">Expert guidance, proven results</div>
-              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Click to view full profile</p>
+              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Hover to expand · Click to view full profile</p>
             </div>
 
             <div
-              className="lp-animate lp-educator-grid"
-              style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', maxWidth: '860px', margin: '0 auto' }}
-              onMouseLeave={() => setHoveredIdx(null)}
+              className="lp-animate lp-educator-deck"
+              onMouseEnter={() => setStackOpen(true)}
+              onMouseLeave={() => { setStackOpen(false); setHoveredIdx(null); }}
             >
               {HOME_EDUCATORS.map((edu, idx) => (
                 <div
@@ -321,21 +328,15 @@ export default function LandingPage() {
                   onClick={() => router.push(edu.href)}
                   onMouseEnter={() => setHoveredIdx(idx)}
                   style={{
-                    background: '#fff',
-                    border: '1px solid #E4E4E7',
-                    borderTop: '4px solid #09090B',
-                    borderRadius: '16px',
-                    padding: '28px',
-                    cursor: 'pointer',
-                    aspectRatio: '1',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    transform: hoveredIdx === idx ? 'translateY(-6px)' : 'none',
+                    left: idx === 0 ? 0 : stackOpen ? 'calc(50% + 12px)' : '8%',
+                    zIndex: idx === 0 ? 2 : 1,
                     boxShadow: hoveredIdx === idx
                       ? '0 16px 40px rgba(0,0,0,0.13)'
-                      : '0 2px 8px rgba(0,0,0,0.06)',
-                    transition: 'transform 0.28s ease, box-shadow 0.28s ease',
+                      : '0 2px 12px rgba(0,0,0,0.08)',
+                    transform: hoveredIdx === idx
+                      ? 'translateY(-8px)'
+                      : idx === 1 && !stackOpen ? 'scale(0.97)' : 'none',
+                    transition: 'left 0.38s ease, transform 0.28s ease, box-shadow 0.28s ease',
                   }}
                 >
                   <div className="lp-educator-inner">
