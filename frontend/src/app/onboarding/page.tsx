@@ -60,6 +60,11 @@ function OnboardingForm() {
   }, [isLoaded, getToken]);
 
   function redirectByRole(role: string) {
+    if (role === 'STUDENT' && typeof window !== 'undefined' && localStorage.getItem('pendingDemoRedirect')) {
+      localStorage.removeItem('pendingDemoRedirect');
+      router.push('/dashboard/student/demo-class');
+      return;
+    }
     switch (role) {
       case 'ADMIN': router.push('/dashboard/admin'); break;
       case 'TEACHER': router.push('/dashboard/teacher'); break;

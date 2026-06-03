@@ -15,6 +15,33 @@ const VALID_GRADES = ['9', '10', '11', '12'];
 export class DemoClassesService {
   constructor(private prisma: PrismaService) {}
 
+  // ─── Public (no auth) ────────────────────────────────────────────────────
+
+  async getPublicDemoClass() {
+    const enabled = await this.isFeatureEnabled();
+    if (!enabled) return null;
+
+    const demoClass = await this.prisma.demoClass.findFirst({
+      where: {
+        status: DemoClassStatus.SCHEDULED,
+        scheduledAt: { gte: new Date() },
+      },
+      include: { enrollments: true },
+      orderBy: { scheduledAt: 'asc' },
+    });
+
+    if (!demoClass) return null;
+
+    return {
+      id: demoClass.id,
+      title: demoClass.title,
+      grade: demoClass.grade,
+      scheduledAt: demoClass.scheduledAt,
+      capacity: demoClass.capacity,
+      enrolledCount: demoClass.enrollments.length,
+    };
+  }
+
   // ─── Feature toggle ───────────────────────────────────────────────────────
 
   async isFeatureEnabled(): Promise<boolean> {
