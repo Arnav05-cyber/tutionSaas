@@ -3,6 +3,7 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { formatTeacherCode } from '@/lib/teacherCode';
 
@@ -29,6 +30,12 @@ interface Session {
   googleMeetLink: string;
 }
 
+interface DemoClassState {
+  available: boolean;
+  reason: string | null;
+  demoClass: { id: number; title: string; grade: string; scheduledAt: string } | null;
+}
+
 const DAY_SHORT: Record<string, string> = {
   MONDAY: 'Mon', TUESDAY: 'Tue', WEDNESDAY: 'Wed', THURSDAY: 'Thu',
   FRIDAY: 'Fri', SATURDAY: 'Sat', SUNDAY: 'Sun'
@@ -46,9 +53,11 @@ function formatTime(t: string) {
 
 export default function StudentDashboard() {
   const { getToken } = useAuth();
+  const router = useRouter();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [batches, setBatches] = useState<Batch[]>([]);
   const [availableBatches, setAvailableBatches] = useState<Batch[]>([]);
+  const [demoState, setDemoState] = useState<DemoClassState | null>(null);
   const [loading, setLoading] = useState(true);
   const [joiningId, setJoiningId] = useState<number | null>(null);
 
@@ -77,14 +86,16 @@ export default function StudentDashboard() {
   useEffect(() => {
     async function load() {
       const token = await getToken();
-      const [sessionsData, batchesData, availableData] = await Promise.all([
+      const [sessionsData, batchesData, availableData, demoData] = await Promise.all([
         api.get('/api/sessions/upcoming', token),
         api.get('/api/batches/my', token),
         api.get('/api/batches/available', token),
+        api.get('/api/demo-classes/available', token).catch(() => null),
       ]);
       setSessions(sessionsData);
       setBatches(batchesData);
       setAvailableBatches(availableData);
+      if (demoData) setDemoState(demoData);
       setLoading(false);
     }
     load();
@@ -109,6 +120,22 @@ export default function StudentDashboard() {
           <div className="stat-value">{batches.length}</div>
         </div>
       </div>
+
+      {/* ─── Demo Class Banner ─── */}
+      {demoState?.available && demoState.demoClass && (
+        <div className="card" style={{ marginBottom: '24px', borderLeft: '4px solid var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
+          <div>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--primary)', marginBottom: '2px' }}>FREE DEMO CLASS AVAILABLE</div>
+            <div style={{ fontSize: '16px', fontWeight: 600 }}>{demoState.demoClass.title}</div>
+            <div style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '2px' }}>
+              {new Date(demoState.demoClass.scheduledAt).toLocaleString()} &mdash; Grade {demoState.demoClass.grade}th
+            </div>
+          </div>
+          <button className="btn btn-primary" onClick={() => router.push('/dashboard/student/demo-class')}>
+            View Demo Class
+          </button>
+        </div>
+      )}
 
       {/* ─── My Batches ─── */}
       <h2 style={{ fontSize: '18px', fontWeight: 600, marginBottom: '12px' }}>My Batches</h2>

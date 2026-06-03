@@ -16,6 +16,7 @@ import { ParentModule } from './parent/parent.module';
 import { AdminModule } from './admin/admin.module';
 import { WebhooksModule } from './webhooks/webhooks.module';
 import { FeeResetScheduler } from './scheduler/fee-reset.scheduler';
+import { DemoClassesModule } from './demo-classes/demo-classes.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { FeeResetScheduler } from './scheduler/fee-reset.scheduler';
     ParentModule,
     AdminModule,
     WebhooksModule,
+    DemoClassesModule,
   ],
   providers: [FeeResetScheduler],
 })

@@ -15,6 +15,12 @@ enum Role {
   PARENT
 }
 
+enum DemoClassStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
 enum SessionStatus {
   SCHEDULED
   COMPLETED
@@ -55,6 +61,9 @@ model User {
 
   taughtBatches   Batch[] @relation("BatchTeacher")
   enrolledBatches Batch[] @relation("BatchStudents")
+
+  taughtDemoClasses DemoClass[]          @relation("TeacherDemoClasses")
+  demoEnrollment    DemoClassEnrollment? @relation("StudentDemoEnrollments")
 
   attendanceRecords AttendanceRecord[]
   sessionJoinLogs   SessionJoinLog[]
@@ -238,4 +247,38 @@ model BatchDoubt {
   status    QueryStatus @default(OPEN)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+}
+
+model DemoClass {
+  id              Int             @id @default(autoincrement())
+  title           String
+  grade           String
+  teacherId       Int
+  teacher         User            @relation("TeacherDemoClasses", fields: [teacherId], references: [id])
+  scheduledAt     DateTime
+  durationMinutes Int             @default(60)
+  platform        String          @default("INTERNAL")
+  googleMeetLink  String?
+  internalRoomId  String?
+  status          DemoClassStatus @default(SCHEDULED)
+  capacity        Int             @default(5)
+  createdAt       DateTime        @default(now())
+
+  enrollments DemoClassEnrollment[]
+}
+
+model DemoClassEnrollment {
+  id          Int       @id @default(autoincrement())
+  demoClassId Int
+  demoClass   DemoClass @relation(fields: [demoClassId], references: [id], onDelete: Cascade)
+  studentId   Int
+  student     User      @relation("StudentDemoEnrollments", fields: [studentId], references: [id])
+  joinedAt    DateTime  @default(now())
+
+  @@unique([studentId])
+}
+
+model SystemConfig {
+  key   String @id
+  value String
 }
