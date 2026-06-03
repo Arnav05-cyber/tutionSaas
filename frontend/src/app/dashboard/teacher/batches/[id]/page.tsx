@@ -130,7 +130,7 @@ export default function BatchDetailPage() {
     setCreating(true);
     try {
       const token = await getToken();
-      const scheduledAt = `${sessionDate}T${sessionTime}:00`;
+      const scheduledAt = new Date(`${sessionDate}T${sessionTime}:00`).toISOString();
       await api.post(`/api/batches/${id}/sessions`, {
         title: sessionTitle,
         scheduledAt,
@@ -163,7 +163,7 @@ export default function BatchDetailPage() {
     setRescheduling(true);
     try {
       const token = await getToken();
-      const scheduledAt = `${rescheduleDate}T${rescheduleTime}:00`;
+      const scheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}:00`).toISOString();
       await api.put(`/api/sessions/${session.id}`, {
         title: session.title,
         scheduledAt,

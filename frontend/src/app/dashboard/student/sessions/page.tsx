@@ -8,9 +8,30 @@ interface Session {
   id: number;
   title: string;
   scheduledAt: string;
+  endTime: string;
+  durationMinutes: number;
   status: string;
   googleMeetLink: string;
   platform: string;
+  batchName: string;
+}
+
+function isSessionActive(session: Session, now: Date) {
+  const start = new Date(session.scheduledAt);
+  const end = new Date(session.endTime);
+  const earlyStart = new Date(start.getTime() - 15 * 60000); // 15 mins early
+  return now >= earlyStart && now <= end;
+}
+
+function getTimeUntil(session: Session, now: Date) {
+  const start = new Date(session.scheduledAt);
+  const earlyStart = new Date(start.getTime() - 15 * 60000);
+  const diff = earlyStart.getTime() - now.getTime();
+  if (diff <= 0) return null;
+  const hours = Math.floor(diff / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  if (hours > 0) return `Opens in ${hours}h ${minutes}m`;
+  return `Opens in ${minutes}m`;
 }
 
 export default function StudentSessionsPage() {
@@ -18,6 +39,7 @@ export default function StudentSessionsPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState<number | null>(null);
+  const [now, setNow] = useState(new Date());
 
   useEffect(() => {
     async function load() {
@@ -27,6 +49,8 @@ export default function StudentSessionsPage() {
       setLoading(false);
     }
     load();
+    const interval = setInterval(() => setNow(new Date()), 30000);
+    return () => clearInterval(interval);
   }, []);
 
   async function joinSession(session: Session) {
@@ -64,23 +88,41 @@ export default function StudentSessionsPage() {
         <div className="card empty-state"><p>No upcoming sessions</p></div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {sessions.map(s => (
-            <div key={s.id} className="card card-flex">
-              <div>
-                <h3 style={{ fontSize: '15px', fontWeight: 500 }}>{s.title || 'Untitled Session'}</h3>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                  {new Date(s.scheduledAt).toLocaleString()}
-                </p>
+          {sessions.map(s => {
+            const active = isSessionActive(s, now);
+            const timeUntil = getTimeUntil(s, now);
+
+            return (
+              <div key={s.id} className="card card-flex" style={active ? { borderLeft: '3px solid var(--success)' } : {}}>
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: 500 }}>{s.title || 'Untitled Session'}</h3>
+                  <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                    {s.batchName && <span>{s.batchName} · </span>}
+                    {new Date(s.scheduledAt).toLocaleString()} — {s.durationMinutes} min
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {active && (
+                    <>
+                      <span className="badge badge-success">● LIVE</span>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => joinSession(s)}
+                        disabled={joining === s.id}
+                      >
+                        {joining === s.id ? 'Joining...' : 'Join Class'}
+                      </button>
+                    </>
+                  )}
+                  {!active && timeUntil && (
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      {timeUntil}
+                    </span>
+                  )}
+                </div>
               </div>
-              <button
-                className="btn btn-primary"
-                onClick={() => joinSession(s)}
-                disabled={joining === s.id}
-              >
-                {joining === s.id ? 'Joining...' : 'Join Class'}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

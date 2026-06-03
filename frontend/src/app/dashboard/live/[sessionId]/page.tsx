@@ -13,6 +13,8 @@ interface SessionInfo {
   batchName: string;
   platform: string;
   status: string;
+  scheduledAt: string;
+  endTime: string;
 }
 
 interface LiveKitCredentials {
@@ -44,6 +46,24 @@ export default function LiveClassPage() {
           return;
         }
 
+        // Check if session is within the joinable window (15 min before start → end)
+        const now = new Date();
+        const start = new Date(data.scheduledAt);
+        const end = new Date(data.endTime);
+        const earlyStart = new Date(start.getTime() - 15 * 60000);
+
+        if (now < earlyStart) {
+          setError(`This class hasn't started yet. You can join from ${earlyStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`);
+          setLoading(false);
+          return;
+        }
+
+        if (now > end) {
+          setError('This class session has already ended.');
+          setLoading(false);
+          return;
+        }
+
         setSessionInfo(data);
 
         // Fetching token also logs student join and auto-marks attendance
@@ -61,24 +81,58 @@ export default function LiveClassPage() {
 
   if (loading || !user) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', background: '#111' }}>
         <div className="spinner" style={{ marginBottom: '16px' }} />
-        <p style={{ color: 'var(--text-muted)' }}>Preparing live classroom...</p>
+        <p style={{ color: '#aaa' }}>Preparing live classroom...</p>
       </div>
     );
   }
 
   if (error || !sessionInfo || !credentials) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2 style={{ marginBottom: '12px' }}>{error || 'Session Not Found'}</h2>
-        <button className="btn" onClick={() => router.push('/dashboard')}>Go to Dashboard</button>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', background: '#111', color: '#fff' }}>
+        <div style={{ textAlign: 'center', maxWidth: '400px', padding: '40px' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📹</div>
+          <h2 style={{ marginBottom: '12px', fontSize: '20px', fontWeight: 600 }}>{error || 'Session Not Found'}</h2>
+          <p style={{ color: '#888', fontSize: '14px', marginBottom: '24px' }}>
+            {error?.includes('started yet')
+              ? 'Please come back when the class is about to begin.'
+              : 'Please check with your teacher or try again later.'}
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={() => router.push('/dashboard')}
+            style={{ padding: '10px 24px' }}
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, background: '#111' }}>
+      {/* Session header bar */}
+      <div style={{
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 60,
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), transparent)',
+        padding: '12px 20px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        pointerEvents: 'none',
+      }}>
+        <div style={{ pointerEvents: 'auto' }}>
+          <span style={{ color: '#fff', fontSize: '14px', fontWeight: 600 }}>
+            {sessionInfo.title || 'Live Class'}
+          </span>
+          {sessionInfo.batchName && (
+            <span style={{ color: '#888', fontSize: '13px', marginLeft: '8px' }}>
+              — {sessionInfo.batchName}
+            </span>
+          )}
+        </div>
+      </div>
+
       <LiveKitRoom
         video={true}
         audio={true}
