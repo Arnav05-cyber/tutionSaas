@@ -182,16 +182,27 @@ export class SessionsService {
     const batchIds = batches.map((b) => b.id);
     if (batchIds.length === 0) return [];
 
+    // Show sessions that haven't ended yet (scheduled + currently active)
+    // A session ends at scheduledAt + durationMinutes
+    const now = new Date();
+
     const sessions = await this.prisma.classSession.findMany({
       where: {
         batchId: { in: batchIds },
         status: SessionStatus.SCHEDULED,
-        scheduledAt: { gte: new Date() },
       },
       include: { batch: true },
       orderBy: { scheduledAt: 'asc' },
     });
-    return sessions.map(toSessionResponse);
+
+    // Filter to sessions whose end time is still in the future
+    const upcoming = sessions.filter((s) => {
+      const end = new Date(s.scheduledAt);
+      end.setMinutes(end.getMinutes() + (s.durationMinutes || 60));
+      return end > now;
+    });
+
+    return upcoming.map(toSessionResponse);
   }
 
   async logStudentJoin(sessionId: number, clerkId: string) {
