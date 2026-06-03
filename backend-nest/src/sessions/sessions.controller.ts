@@ -103,4 +103,13 @@ export class SessionsController {
   ) {
     return this.sessionsService.getJoinLogs(id, clerkId);
   }
+
+  @Get('api/sessions/:id/livekit-token')
+  @Roles(Role.STUDENT, Role.TEACHER, Role.ADMIN)
+  getLivekitToken(
+    @Param('id', ParseIntPipe) id: number,
+    @ClerkId() clerkId: string,
+  ) {
+    return this.sessionsService.getLivekitToken(id, clerkId);
+  }
 }

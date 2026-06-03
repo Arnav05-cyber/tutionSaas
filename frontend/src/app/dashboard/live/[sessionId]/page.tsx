@@ -4,14 +4,20 @@ import { useAuth, useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { LiveKitRoom, VideoConference } from '@livekit/components-react';
+import '@livekit/components-styles';
 
 interface SessionInfo {
   id: number;
   title: string;
   batchName: string;
-  internalRoomId: string;
   platform: string;
   status: string;
+}
+
+interface LiveKitCredentials {
+  token: string;
+  url: string;
 }
 
 export default function LiveClassPage() {
@@ -23,43 +29,35 @@ export default function LiveClassPage() {
 
   const [loading, setLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
-  const [redirecting, setRedirecting] = useState(false);
+  const [credentials, setCredentials] = useState<LiveKitCredentials | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
       try {
         const token = await getToken();
         const data = await api.get(`/api/sessions/${id}`, token);
-        
-        if (data.platform !== 'INTERNAL') {
-          alert('This session is not hosted internally.');
-          router.push('/dashboard');
+
+        if (data.platform !== 'LIVEKIT') {
+          setError('This session is not hosted on LiveKit.');
+          setLoading(false);
           return;
         }
 
         setSessionInfo(data);
+
+        // Fetching token also logs student join and auto-marks attendance
+        const creds = await api.get(`/api/sessions/${id}/livekit-token`, token);
+        setCredentials(creds);
       } catch (err) {
         console.error(err);
-        alert('Failed to load session details.');
+        setError('Failed to load session. Make sure you are enrolled and the session is active.');
       } finally {
         setLoading(false);
       }
     }
-    if (id) {
-      load();
-    }
-  }, [id, getToken, router]);
-
-  function joinJitsiRoom() {
-    if (!sessionInfo?.internalRoomId || !user) return;
-    setRedirecting(true);
-
-    const displayName = encodeURIComponent(user.fullName || user.username || 'Participant');
-    const roomId = sessionInfo.internalRoomId.replace(/[^a-zA-Z0-9-_]/g, '');
-    const jitsiUrl = `https://meet.jit.si/${roomId}#userInfo.displayName="${displayName}"&config.startWithAudioMuted=true&config.startWithVideoMuted=true&config.prejoinConfig.enabled=false`;
-    
-    window.location.href = jitsiUrl;
-  }
+    if (id) load();
+  }, [id, getToken]);
 
   if (loading || !user) {
     return (
@@ -70,47 +68,27 @@ export default function LiveClassPage() {
     );
   }
 
-  if (!sessionInfo || !sessionInfo.internalRoomId) {
+  if (error || !sessionInfo || !credentials) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h2>Session Not Found</h2>
-        <button className="btn" onClick={() => router.back()}>Go Back</button>
+        <h2 style={{ marginBottom: '12px' }}>{error || 'Session Not Found'}</h2>
+        <button className="btn" onClick={() => router.push('/dashboard')}>Go to Dashboard</button>
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: 'var(--bg)', padding: '24px' }}>
-      <div className="card" style={{ maxWidth: '500px', width: '100%', textAlign: 'center' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 600, marginBottom: '8px' }}>{sessionInfo.title || 'Live Class'}</h1>
-        <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '24px' }}>{sessionInfo.batchName}</p>
-
-        <div style={{ background: 'var(--bg)', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
-          <p style={{ fontSize: '14px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-            Your class will open in a new Jitsi Meet window.
-          </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            <strong>Teachers:</strong> Log in with Google when prompted to become the moderator. Students can join once the teacher is in.
-          </p>
-        </div>
-
-        <button 
-          className="btn btn-primary" 
-          style={{ width: '100%', padding: '14px', fontSize: '16px', fontWeight: 600 }}
-          onClick={joinJitsiRoom}
-          disabled={redirecting}
-        >
-          {redirecting ? 'Opening Jitsi...' : '🎥 Join Live Class'}
-        </button>
-
-        <button 
-          className="btn" 
-          style={{ width: '100%', marginTop: '12px' }}
-          onClick={() => router.back()}
-        >
-          ← Go Back
-        </button>
-      </div>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, background: '#111' }}>
+      <LiveKitRoom
+        video={true}
+        audio={true}
+        token={credentials.token}
+        serverUrl={credentials.url}
+        style={{ height: '100%', width: '100%' }}
+        onDisconnected={() => router.push('/dashboard')}
+      >
+        <VideoConference />
+      </LiveKitRoom>
     </div>
   );
 }

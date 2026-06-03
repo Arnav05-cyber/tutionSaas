@@ -119,7 +119,7 @@ export default function BatchDetailPage() {
     setSessionDate(getNextDateForDay(slot.dayOfWeek));
     setSessionTime(slot.startTime.substring(0, 5));
     setSessionTitle('');
-    setSessionPlatform('INTERNAL');
+    setSessionPlatform('LIVEKIT');
     setSessionLink('');
     setShowCreate(true);
   }
@@ -312,7 +312,7 @@ export default function BatchDetailPage() {
               <div className="form-group">
                 <label className="input-label">Platform</label>
                 <select className="input" value={sessionPlatform} onChange={e => setSessionPlatform(e.target.value)}>
-                  <option value="INTERNAL">Hosted Internally (Jitsi Meet)</option>
+                  <option value="LIVEKIT">Edusha Live (In-App)</option>
                   <option value="EXTERNAL">External Link (Zoom, Google Meet, etc.)</option>
                 </select>
               </div>
@@ -360,7 +360,7 @@ export default function BatchDetailPage() {
                         Join External Meet
                       </a>
                     )}
-                    {active && s.platform === 'INTERNAL' && (
+                    {active && s.platform === 'LIVEKIT' && (
                       <button className="btn btn-sm btn-primary" onClick={() => window.open(`/dashboard/live/${s.id}`, '_blank')}>
                         Join Live Class
                       </button>

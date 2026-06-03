@@ -10,6 +10,7 @@ interface Session {
   scheduledAt: string;
   status: string;
   googleMeetLink: string;
+  platform: string;
 }
 
 export default function StudentSessionsPage() {
@@ -28,18 +29,20 @@ export default function StudentSessionsPage() {
     load();
   }, []);
 
-  async function joinSession(sessionId: number) {
-    setJoining(sessionId);
+  async function joinSession(session: Session) {
+    if (session.platform === 'LIVEKIT') {
+      window.open(`/dashboard/live/${session.id}`, '_blank');
+      return;
+    }
+
+    setJoining(session.id);
     try {
       const token = await getToken();
-      const result = await api.post(`/api/sessions/${sessionId}/join`, {}, token);
-      
-      if (result.platform === 'INTERNAL') {
-        window.open(`/dashboard/live/${result.id}`, '_blank');
-      } else if (result.googleMeetLink) {
+      const result = await api.post(`/api/sessions/${session.id}/join`, {}, token);
+      if (result.googleMeetLink) {
         window.open(result.googleMeetLink, '_blank');
       } else {
-        alert('Meeting link not available');
+        alert('Meeting link not available yet');
       }
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : 'Failed to join session');
@@ -71,7 +74,7 @@ export default function StudentSessionsPage() {
               </div>
               <button
                 className="btn btn-primary"
-                onClick={() => joinSession(s.id)}
+                onClick={() => joinSession(s)}
                 disabled={joining === s.id}
               >
                 {joining === s.id ? 'Joining...' : 'Join Class'}

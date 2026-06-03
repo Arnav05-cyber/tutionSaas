@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { Role, SessionStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
+import { AccessToken } from 'livekit-server-sdk';
 
 @Injectable()
 export class SessionsService {
@@ -37,7 +38,7 @@ export class SessionsService {
     await this.validateTeacherOwnsBatch(batch, clerkId);
 
     const platform = dto.platform || 'EXTERNAL';
-    const internalRoomId = platform === 'INTERNAL' ? `EDUSHA-Live-${uuidv4()}` : null;
+    const internalRoomId = platform === 'LIVEKIT' ? `EDUSHA-${uuidv4()}` : null;
 
     const session = await this.prisma.classSession.create({
       data: {
@@ -200,6 +201,10 @@ export class SessionsService {
     });
     if (!session) throw new NotFoundException('Session not found');
 
+    if (session.platform === 'LIVEKIT') {
+      throw new BadRequestException('Use the /livekit-token endpoint to join this session');
+    }
+
     const student = await this.prisma.user.findUnique({ where: { clerkId } });
     if (!student) throw new NotFoundException('Student not found');
 
@@ -211,21 +216,84 @@ export class SessionsService {
     const alreadyLogged = await this.prisma.sessionJoinLog.findUnique({
       where: { sessionId_studentId: { sessionId, studentId: student.id } },
     });
-
     if (!alreadyLogged) {
       await this.prisma.sessionJoinLog.create({
         data: { sessionId, studentId: student.id },
       });
     }
 
-    if (
-      session.platform === 'EXTERNAL' &&
-      (!session.googleMeetLink || !session.googleMeetLink.trim())
-    ) {
+    if (!session.googleMeetLink?.trim()) {
       throw new BadRequestException('No meeting link has been set for this session yet');
     }
 
     return toSessionResponse(session);
+  }
+
+  async getLivekitToken(sessionId: number, clerkId: string) {
+    const session = await this.prisma.classSession.findUnique({
+      where: { id: sessionId },
+      include: { batch: { include: { teacher: true } } },
+    });
+    if (!session) throw new NotFoundException('Session not found');
+    if (session.platform !== 'LIVEKIT') {
+      throw new BadRequestException('Session is not a LiveKit session');
+    }
+    if (!session.internalRoomId) {
+      throw new BadRequestException('Session room not initialized');
+    }
+
+    const user = await this.prisma.user.findUnique({ where: { clerkId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const isAdmin = user.role === Role.ADMIN;
+    const isTeacher = user.role === Role.TEACHER && session.batch.teacherId === user.id;
+    const isStudent = !isTeacher && !isAdmin;
+
+    if (isStudent) {
+      const enrolled = await this.prisma.batch.findFirst({
+        where: { id: session.batchId, students: { some: { id: user.id } } },
+      });
+      if (!enrolled) throw new ForbiddenException('You are not enrolled in this batch');
+
+      // Log join (idempotent)
+      await this.prisma.sessionJoinLog.upsert({
+        where: { sessionId_studentId: { sessionId, studentId: user.id } },
+        create: { sessionId, studentId: user.id },
+        update: {},
+      });
+
+      // Auto-mark present — teacher can override later
+      await this.prisma.attendanceRecord.upsert({
+        where: { sessionId_studentId: { sessionId, studentId: user.id } },
+        create: { sessionId, studentId: user.id, present: true },
+        update: { present: true },
+      });
+    }
+
+    const apiKey = process.env.LIVEKIT_API_KEY;
+    const apiSecret = process.env.LIVEKIT_API_SECRET;
+    const wsUrl = process.env.LIVEKIT_WS_URL;
+    if (!apiKey || !apiSecret || !wsUrl) {
+      throw new BadRequestException('LiveKit is not configured on this server');
+    }
+
+    const at = new AccessToken(apiKey, apiSecret, {
+      identity: clerkId,
+      name: user.fullName || clerkId,
+      ttl: '2h',
+    });
+    at.addGrant({
+      roomJoin: true,
+      room: session.internalRoomId,
+      canPublish: true,
+      canSubscribe: true,
+      roomAdmin: isTeacher || isAdmin,
+    });
+
+    return {
+      token: await at.toJwt(),
+      url: wsUrl,
+    };
   }
 
   async getJoinLogs(sessionId: number, clerkId: string) {

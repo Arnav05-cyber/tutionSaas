@@ -5,7 +5,7 @@ const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-XSS-Protection', value: '1; mode=block' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+  { key: 'Permissions-Policy', value: 'camera=(self), microphone=(self), geolocation=()' },
   {
     key: 'Strict-Transport-Security',
     value: 'max-age=63072000; includeSubDomains; preload',
@@ -19,7 +19,7 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "worker-src 'self' blob:",
-      "connect-src 'self' https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://clerk.edusha.co.in https://api.razorpay.com https://api.edusha.co.in",
+      "connect-src 'self' https://*.clerk.accounts.dev https://clerk.com https://*.clerk.com https://clerk.edusha.co.in https://api.razorpay.com https://api.edusha.co.in wss://*.livekit.cloud https://*.livekit.cloud",
       "frame-src https://checkout.razorpay.com https://*.clerk.accounts.dev https://clerk.edusha.co.in",
     ].join('; '),
   },
