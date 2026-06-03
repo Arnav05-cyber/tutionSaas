@@ -44,27 +44,12 @@ const EDUCATOR = {
     'A student-centred approach combining conceptual clarity, structured writing practice, and personalised feedback — delivering consistent results across board, competitive, and international examinations.',
 };
 
-function useCountUp(target: number, duration = 1400) {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    const start = performance.now();
-    function step(now: number) {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * target));
-      if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }, [target, duration]);
-  return count;
-}
 
 export default function LandingPage() {
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const [demoClass, setDemoClass] = useState<PublicDemoClass | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const yearsCount = useCountUp(25);
 
   useEffect(() => {
     if (isSignedIn) router.push('/dashboard');
@@ -259,14 +244,14 @@ export default function LandingPage() {
                 Excellence<br />in Education.
               </h1>
               <p style={{ fontSize: 'clamp(14px, 2.5vw, 17px)', color: '#ffffffbb', lineHeight: 1.7, marginBottom: '32px', maxWidth: '520px' }}>
-                Expert-led English classes for CBSE Classes 10 &amp; 12, IELTS, and CUET. Live sessions, personalised feedback, and results you can count on.
+                Expert-led classes for CBSE, IELTS, and CUET. Live sessions, personalised feedback, and results you can count on.
               </p>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <Link href="/sign-up" className="btn" style={{ background: '#fff', color: '#09090B', border: 'none', padding: '12px 24px', fontSize: '15px', fontWeight: 700 }}>
                   Get Started Free
                 </Link>
                 <Link href="/teachers" className="btn" style={{ background: 'transparent', color: '#fff', border: '1px solid #ffffff44', padding: '12px 24px', fontSize: '15px' }}>
-                  Meet Our Educator
+                  Meet Our Educators
                 </Link>
               </div>
             </div>
@@ -278,7 +263,7 @@ export default function LandingPage() {
           <div className="container">
             <div className="lp-stats-grid">
               {[
-                { value: `${yearsCount}+`, label: 'Years Teaching' },
+                { value: '2', label: 'Expert Educators' },
                 { value: 'CBSE', label: 'Classes 10 & 12' },
                 { value: 'IELTS', label: '& CUET Coaching' },
                 { value: 'Live', label: 'Interactive Classes' },
@@ -318,7 +303,7 @@ export default function LandingPage() {
         <section className="lp-educator-section" style={{ padding: '0 0 72px' }}>
           <div className="container">
             <div style={{ textAlign: 'center', marginBottom: '32px' }} className="lp-animate">
-              <div className="lp-section-label">Our Educator</div>
+              <div className="lp-section-label">Our Educators</div>
               <div className="lp-section-title">Expert guidance, proven results</div>
             </div>
 
@@ -340,7 +325,7 @@ export default function LandingPage() {
                   </p>
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                     <Link href="/teachers" className="btn btn-primary" style={{ fontSize: '14px' }}>
-                      View Full Profile
+                      View All Educators
                     </Link>
                     {demoClass && spotsLeft > 0 ? (
                       <button className="btn" onClick={handleBannerClick} style={{ fontSize: '14px' }}>
@@ -398,7 +383,7 @@ export default function LandingPage() {
           <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <span style={{ fontSize: '16px', fontWeight: 800, letterSpacing: '1px', color: '#fff' }}>EDUSHA</span>
             <div style={{ display: 'flex', gap: '20px', fontSize: '13px' }}>
-              <Link href="/teachers" style={{ color: '#71717A' }}>Our Educator</Link>
+              <Link href="/teachers" style={{ color: '#71717A' }}>Our Educators</Link>
               <Link href="/privacy" style={{ color: '#71717A' }}>Privacy</Link>
               <Link href="/terms" style={{ color: '#71717A' }}>Terms</Link>
             </div>
