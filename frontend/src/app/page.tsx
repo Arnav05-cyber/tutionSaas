@@ -45,11 +45,27 @@ const EDUCATOR = {
     'A student-centred approach combining conceptual clarity, structured writing practice, and personalised feedback — delivering consistent results across board, competitive, and international examinations.',
 };
 
+function useCountUp(target: number, duration = 1400) {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const start = performance.now();
+    function step(now: number) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return count;
+}
+
 export default function LandingPage() {
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const [demoClass, setDemoClass] = useState<PublicDemoClass | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const yearsCount = useCountUp(25);
 
   useEffect(() => {
     if (isSignedIn) router.push('/dashboard');
@@ -264,7 +280,7 @@ export default function LandingPage() {
           <div className="container">
             <div className="lp-stats-row" style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', flexWrap: 'wrap' }}>
               {[
-                { value: '25+', label: 'Years Teaching' },
+                { value: `${yearsCount}+`, label: 'Years Teaching' },
                 { value: 'CBSE', label: 'Classes 10 & 12' },
                 { value: 'IELTS', label: '& CUET Coaching' },
                 { value: 'Live', label: 'Interactive Classes' },
