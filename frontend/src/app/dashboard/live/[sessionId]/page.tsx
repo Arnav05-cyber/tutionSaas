@@ -4,7 +4,11 @@ import { useAuth, useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import { LiveKitRoom, VideoConference } from '@livekit/components-react';
+import {
+  LiveKitRoom,
+  VideoConference,
+  RoomAudioRenderer,
+} from '@livekit/components-react';
 import '@livekit/components-styles';
 
 interface SessionInfo {
@@ -82,7 +86,7 @@ export default function LiveClassPage() {
   if (loading || !user) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', background: '#111' }}>
-        <div className="spinner" style={{ marginBottom: '16px' }} />
+        <div className="spinner" style={{ marginBottom: '16px', borderColor: '#333', borderTopColor: '#fff' }} />
         <p style={{ color: '#aaa' }}>Preparing live classroom...</p>
       </div>
     );
@@ -100,9 +104,12 @@ export default function LiveClassPage() {
               : 'Please check with your teacher or try again later.'}
           </p>
           <button
-            className="btn btn-primary"
             onClick={() => router.push('/dashboard')}
-            style={{ padding: '10px 24px' }}
+            style={{
+              padding: '10px 24px', background: '#fff', color: '#111',
+              border: 'none', borderRadius: '8px', fontWeight: 600,
+              cursor: 'pointer', fontSize: '14px',
+            }}
           >
             Back to Dashboard
           </button>
@@ -112,37 +119,38 @@ export default function LiveClassPage() {
   }
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, background: '#111' }}>
-      {/* Session header bar */}
-      <div style={{
-        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 60,
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.7), transparent)',
-        padding: '12px 20px',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        pointerEvents: 'none',
-      }}>
-        <div style={{ pointerEvents: 'auto' }}>
-          <span style={{ color: '#fff', fontSize: '14px', fontWeight: 600 }}>
-            {sessionInfo.title || 'Live Class'}
-          </span>
-          {sessionInfo.batchName && (
-            <span style={{ color: '#888', fontSize: '13px', marginLeft: '8px' }}>
-              — {sessionInfo.batchName}
-            </span>
-          )}
-        </div>
+    <>
+      {/* Scoped style reset: undo globals inside LiveKit */}
+      <style>{`
+        .lk-room-container,
+        .lk-room-container * {
+          all: revert;
+          box-sizing: border-box;
+        }
+        .lk-room-container {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          z-index: 9999 !important;
+          background: #111 !important;
+        }
+      `}</style>
+      <div className="lk-room-container">
+        <LiveKitRoom
+          video={true}
+          audio={true}
+          token={credentials.token}
+          serverUrl={credentials.url}
+          data-lk-theme="default"
+          style={{ height: '100dvh', width: '100vw' }}
+          onDisconnected={() => router.push('/dashboard')}
+        >
+          <VideoConference />
+          <RoomAudioRenderer />
+        </LiveKitRoom>
       </div>
-
-      <LiveKitRoom
-        video={true}
-        audio={true}
-        token={credentials.token}
-        serverUrl={credentials.url}
-        style={{ height: '100%', width: '100%' }}
-        onDisconnected={() => router.push('/dashboard')}
-      >
-        <VideoConference />
-      </LiveKitRoom>
-    </div>
+    </>
   );
 }
