@@ -71,6 +71,64 @@ const EDUCATORS = [
     ],
     examsCovered: ['CBSE Board Exams', 'School Internal Assessments', 'Language Proficiency'],
   },
+  {
+    tagline: 'Science Educator | Chemistry | Middle & Secondary School | 4+ Years Experience',
+    credentials: [
+      { label: 'M.Sc. Chemistry', note: 'Banasthali Vidyapith' },
+      { label: 'B.Ed.', note: 'Regional Institute of Education, NCERT' },
+      { label: 'Science Educator', note: 'Middle & Secondary School' },
+      { label: 'Resource Designer', note: 'Assessments & Student Activities' },
+    ],
+    stats: [
+      { value: '4+', label: 'Years of Experience' },
+      { value: 'NCERT', label: 'RIE Trained' },
+      { value: '6–10', label: 'School Levels' },
+      { value: 'Chem', label: 'Core Specialisation' },
+    ],
+    bio: 'A passionate Science educator with an M.Sc. in Chemistry from Banasthali Vidyapith and a B.Ed. from the Regional Institute of Education (NCERT), with over four years of teaching experience. Having worked with learners across middle and secondary school levels, she focuses on developing conceptual understanding, scientific temperament, analytical thinking, and problem-solving skills through engaging and interactive learning experiences.',
+    approach:
+      'Alongside classroom teaching, she has been actively involved in designing learning resources, assessments, and student-centred activities that promote curiosity and academic growth. Her teaching approach combines conceptual clarity, practical application, and personalised guidance to help students build confidence, strengthen scientific reasoning, and achieve academic success. Committed to fostering a love for science and lifelong learning, she strives to create an encouraging environment where students are empowered to explore, question, think critically, and develop a deeper understanding of the world around them.',
+    specialisations: [
+      'Conceptual Understanding & Scientific Temperament',
+      'Analytical Thinking & Problem Solving',
+      'Middle School Science (Classes 6–8)',
+      'Secondary School Science (Classes 9–10)',
+      'Chemistry — Organic, Inorganic & Physical',
+      'Learning Resource & Assessment Design',
+      'Student-Centred & Interactive Learning',
+      'Practical Application of Scientific Concepts',
+    ],
+    examsCovered: ['CBSE Board Exams', 'Science Olympiads', 'School Internal Assessments'],
+  },
+  {
+    tagline: 'English & German Educator | IELTS · CUET · German | Middle & Senior School | 10+ Years Experience',
+    credentials: [
+      { label: "Master's in English", note: 'Delhi University' },
+      { label: 'Advanced Diploma in German', note: 'Delhi University' },
+      { label: 'B.Ed.', note: 'Bachelor of Education' },
+      { label: 'Content Developer', note: 'Educational Platforms' },
+    ],
+    stats: [
+      { value: '10+', label: 'Years of Experience' },
+      { value: 'IELTS', label: '& CUET Prep' },
+      { value: 'German', label: 'Advanced Diploma' },
+      { value: '6–12', label: 'School Levels' },
+    ],
+    bio: "A seasoned educator with expertise in language, holding a Master's degree in English, a B.Ed., and an Advanced Diploma in German Language from Delhi University. With over 10 years of teaching experience, she has worked with learners across middle, secondary, and senior secondary levels, focusing on English language development, literature, writing, and effective communication.",
+    approach:
+      'She specialises in English, IELTS, CUET preparation, and German language, helping students strengthen their language proficiency, critical thinking, and academic performance. Her student-centred approach combines conceptual clarity, interactive learning, and personalised guidance to build confidence and foster a genuine interest in learning. Alongside classroom teaching, she has contributed to educational content development through her association with various educational platforms. Known for her innovative teaching methods and commitment to student success, she strives to empower learners with the skills, confidence, and knowledge needed to excel academically and communicate effectively in an increasingly global world.',
+    specialisations: [
+      'English Language Development & Literature',
+      'Writing Skills & Effective Communication',
+      'IELTS Preparation (All Bands)',
+      'CUET English Language Module',
+      'German Language (Beginner to Advanced)',
+      'Critical Thinking & Academic Performance',
+      'Middle School English (Classes 6–8)',
+      'Senior Secondary English (Classes 9–12)',
+    ],
+    examsCovered: ['CBSE Board Exams', 'IELTS', 'CUET', 'German Language Certifications', 'School Internal Assessments'],
+  },
 ];
 
 export default function TeachersPage() {

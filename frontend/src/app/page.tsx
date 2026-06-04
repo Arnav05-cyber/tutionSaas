@@ -56,6 +56,28 @@ const HOME_EDUCATORS = [
     excerpt: 'A passionate educator with postgraduate qualifications in English and Political Science, contributing to educational content development and digital learning initiatives through NCERT.',
     href: '/teachers#educator-1',
   },
+  {
+    credentials: ['M.Sc. Chemistry', 'B.Ed. (RIE, NCERT)', 'Science Educator', 'Resource Designer'],
+    subject: 'Science · Chemistry · Middle & Secondary',
+    stats: [
+      { value: '4+', label: 'Years Teaching' },
+      { value: 'NCERT', label: 'RIE Trained' },
+      { value: '6–10', label: 'School Levels' },
+    ],
+    excerpt: 'A passionate Science educator focused on developing conceptual understanding, scientific temperament, and problem-solving skills through engaging, interactive, and student-centred learning experiences.',
+    href: '/teachers#educator-2',
+  },
+  {
+    credentials: ["Master's in English", 'Advanced Diploma in German', 'B.Ed.', 'Content Developer'],
+    subject: 'English · German · IELTS · CUET',
+    stats: [
+      { value: '10+', label: 'Years Teaching' },
+      { value: 'German', label: 'Advanced Diploma' },
+      { value: 'IELTS', label: '& CUET Prep' },
+    ],
+    excerpt: 'A seasoned English and German language educator with over 10 years of experience, specialising in IELTS, CUET preparation, and German language — combining conceptual clarity with personalised guidance.',
+    href: '/teachers#educator-3',
+  },
 ];
 
 
