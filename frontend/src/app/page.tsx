@@ -194,13 +194,13 @@ export default function LandingPage() {
         /* Features grid */
         .lp-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
-        /* Educator 2×2 grid */
-        .lp-educator-deck { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 960px; margin: 0 auto; }
+        /* Educator horizontal deck */
+        .lp-educator-deck { position: relative; max-width: 960px; margin: 0 auto; aspect-ratio: 2/1; }
         .lp-educator-card {
-          position: relative;
+          position: absolute; top: 0; height: 100%; width: calc(25% - 15px);
           display: flex; flex-direction: column; overflow: hidden;
           background: #fff; border: 1px solid #E4E4E7; border-top: 4px solid #09090B;
-          border-radius: 16px; padding: 28px; cursor: pointer;
+          border-radius: 16px; padding: 20px; cursor: pointer;
         }
         .lp-educator-inner { display: flex; flex-direction: column; height: 100%; }
         .lp-educator-stats {
@@ -224,9 +224,9 @@ export default function LandingPage() {
           /* Features: single column */
           .lp-features-grid { grid-template-columns: 1fr; }
 
-          /* Educator deck: single column on mobile */
-          .lp-educator-deck { grid-template-columns: 1fr; gap: 16px; }
-          .lp-educator-card { height: auto; }
+          /* Educator deck: stack vertically on mobile */
+          .lp-educator-deck { aspect-ratio: unset; display: flex; flex-direction: column; gap: 16px; }
+          .lp-educator-card { position: relative; width: 100%; height: auto; top: auto; left: auto !important; z-index: auto !important; transform: none !important; }
 
           /* Section padding */
           .lp-features-section { padding: 48px 0 !important; }
@@ -335,23 +335,34 @@ export default function LandingPage() {
             <div style={{ textAlign: 'center', marginBottom: '32px' }} className="lp-animate">
               <div className="lp-section-label">Our Educators</div>
               <div className="lp-section-title">Expert guidance, proven results</div>
-              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Click any card to view full profile</p>
+              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Hover to spread · Click to view full profile</p>
             </div>
 
-            <div className="lp-animate lp-educator-deck">
+            <div
+              className="lp-animate lp-educator-deck"
+              onMouseEnter={() => setStackOpen(true)}
+              onMouseLeave={() => { setStackOpen(false); setHoveredIdx(null); }}
+            >
               {HOME_EDUCATORS.map((edu, idx) => (
                 <div
                   key={idx}
                   className="lp-educator-card"
                   onClick={() => router.push(edu.href)}
                   onMouseEnter={() => setHoveredIdx(idx)}
-                  onMouseLeave={() => setHoveredIdx(null)}
                   style={{
+                    left: stackOpen
+                      ? (['0', 'calc(25% + 5px)', 'calc(50% + 10px)', 'calc(75% + 15px)'][idx] || '0')
+                      : `calc(38% + ${idx * 6}px)`,
+                    zIndex: hoveredIdx === idx ? 10 : (4 - idx),
                     boxShadow: hoveredIdx === idx
                       ? '0 16px 40px rgba(0,0,0,0.13)'
                       : '0 2px 12px rgba(0,0,0,0.08)',
-                    transform: hoveredIdx === idx ? 'translateY(-8px)' : 'none',
-                    transition: 'transform 0.28s ease, box-shadow 0.28s ease',
+                    transform: hoveredIdx === idx
+                      ? 'translateY(-8px)'
+                      : !stackOpen && idx > 0
+                        ? `scale(${(1 - idx * 0.025).toFixed(3)})`
+                        : 'none',
+                    transition: 'left 0.38s ease, transform 0.28s ease, box-shadow 0.28s ease',
                   }}
                 >
                   <div className="lp-educator-inner">
