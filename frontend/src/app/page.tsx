@@ -194,10 +194,10 @@ export default function LandingPage() {
         /* Features grid */
         .lp-features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 
-        /* Educator horizontal deck */
-        .lp-educator-deck { position: relative; max-width: 960px; margin: 0 auto; aspect-ratio: 2/1; }
+        /* Educator square deck — 4 cards reveal into 2×2 on hover */
+        .lp-educator-deck { position: relative; max-width: 720px; margin: 0 auto; aspect-ratio: 1/1; }
         .lp-educator-card {
-          position: absolute; top: 0; height: 100%; width: calc(25% - 15px);
+          position: absolute; width: calc(50% - 12px); height: calc(50% - 12px);
           display: flex; flex-direction: column; overflow: hidden;
           background: #fff; border: 1px solid #E4E4E7; border-top: 4px solid #09090B;
           border-radius: 16px; padding: 20px; cursor: pointer;
@@ -335,7 +335,7 @@ export default function LandingPage() {
             <div style={{ textAlign: 'center', marginBottom: '32px' }} className="lp-animate">
               <div className="lp-section-label">Our Educators</div>
               <div className="lp-section-title">Expert guidance, proven results</div>
-              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Hover to spread · Click to view full profile</p>
+              <p style={{ fontSize: '14px', color: '#71717A', marginTop: '8px' }}>Hover to reveal · Click to view full profile</p>
             </div>
 
             <div
@@ -343,26 +343,28 @@ export default function LandingPage() {
               onMouseEnter={() => setStackOpen(true)}
               onMouseLeave={() => { setStackOpen(false); setHoveredIdx(null); }}
             >
-              {HOME_EDUCATORS.map((edu, idx) => (
+              {HOME_EDUCATORS.map((edu, idx) => {
+                const expandedLeft = ['0', 'calc(50% + 12px)', '0', 'calc(50% + 12px)'][idx] || '0';
+                const expandedTop  = ['0', '0', 'calc(50% + 12px)', 'calc(50% + 12px)'][idx] || '0';
+                return (
                 <div
                   key={idx}
                   className="lp-educator-card"
                   onClick={() => router.push(edu.href)}
                   onMouseEnter={() => setHoveredIdx(idx)}
                   style={{
-                    left: stackOpen
-                      ? (['0', 'calc(25% + 5px)', 'calc(50% + 10px)', 'calc(75% + 15px)'][idx] || '0')
-                      : `calc(38% + ${idx * 6}px)`,
+                    left: stackOpen ? expandedLeft : `calc(25% + ${idx * 5}px)`,
+                    top:  stackOpen ? expandedTop  : `calc(25% + ${idx * 5}px)`,
                     zIndex: hoveredIdx === idx ? 10 : (4 - idx),
                     boxShadow: hoveredIdx === idx
                       ? '0 16px 40px rgba(0,0,0,0.13)'
                       : '0 2px 12px rgba(0,0,0,0.08)',
                     transform: hoveredIdx === idx
-                      ? 'translateY(-8px)'
+                      ? 'translateY(-6px)'
                       : !stackOpen && idx > 0
-                        ? `scale(${(1 - idx * 0.025).toFixed(3)})`
+                        ? `scale(${(1 - idx * 0.02).toFixed(3)})`
                         : 'none',
-                    transition: 'left 0.38s ease, transform 0.28s ease, box-shadow 0.28s ease',
+                    transition: 'left 0.38s ease, top 0.38s ease, transform 0.28s ease, box-shadow 0.28s ease',
                   }}
                 >
                   <div className="lp-educator-inner">
@@ -407,7 +409,7 @@ export default function LandingPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )})}
             </div>
           </div>
         </section>
