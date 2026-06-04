@@ -18,6 +18,8 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ClerkId } from '../common/decorators/current-user.decorator';
 import { DemoClassesService } from './demo-classes.service';
+import { CreateDemoClassDto } from './dto/create-demo-class.dto';
+import { UpdateDemoClassDto } from './dto/update-demo-class.dto';
 
 @Controller()
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -41,7 +43,7 @@ export class DemoClassesController {
 
   @Post('api/admin/demo-classes')
   @Roles(Role.ADMIN)
-  createDemoClass(@Body() body: any) {
+  createDemoClass(@Body() body: CreateDemoClassDto) {
     return this.demoClassesService.createDemoClass(body);
   }
 
@@ -53,7 +55,7 @@ export class DemoClassesController {
 
   @Put('api/admin/demo-classes/:id')
   @Roles(Role.ADMIN)
-  updateDemoClass(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  updateDemoClass(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateDemoClassDto) {
     return this.demoClassesService.updateDemoClass(id, body);
   }
 

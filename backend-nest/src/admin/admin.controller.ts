@@ -1,10 +1,12 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   HttpCode,
   HttpStatus,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -50,8 +52,11 @@ export class AdminController {
 
   @Get('users')
   async getUsersByRole(@Query('role') role: string) {
-    const r = role.toUpperCase() as Role;
-    const users = await this.prisma.user.findMany({ where: { role: r } });
+    const normalizedRole = role?.toUpperCase();
+    if (!normalizedRole || !Object.values(Role).includes(normalizedRole as Role)) {
+      throw new BadRequestException(`Invalid role. Must be one of: ${Object.values(Role).join(', ')}`);
+    }
+    const users = await this.prisma.user.findMany({ where: { role: normalizedRole as Role } });
     return users.map((u) => ({
       id: u.id,
       fullName: u.fullName || '',
@@ -64,7 +69,7 @@ export class AdminController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async forceDeleteUser(@Param('id', ParseIntPipe) id: number) {
     const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) throw new Error('User not found');
+    if (!user) throw new NotFoundException('User not found');
     await this.usersService.deleteUserByClerkId(user.clerkId);
   }
 

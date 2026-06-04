@@ -11,11 +11,13 @@ import {
 } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
+import { SkipThrottle } from '@nestjs/throttler';
 import { UsersService } from '../users/users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Request } from 'express';
 
 @Controller('api/public')
+@SkipThrottle()
 export class WebhooksController {
   constructor(
     private usersService: UsersService,
@@ -63,19 +65,16 @@ export class WebhooksController {
     try {
       const event = JSON.parse(rawBody);
       const eventType = event.type;
-      console.log('Clerk webhook received:', eventType);
 
       if (eventType === 'user.deleted') {
         const clerkId = event.data?.id;
         if (clerkId) {
-          console.log('Processing user deletion for clerkId:', clerkId);
           await this.usersService.deleteUserByClerkId(clerkId);
         }
       }
 
       return 'OK';
     } catch (e) {
-      console.error('Error processing webhook:', e.message);
       throw new HttpException('Error processing webhook', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -100,7 +99,6 @@ export class WebhooksController {
       const computed = `v1,${hash}`;
       return svixSignature.split(' ').some((sig) => sig === computed);
     } catch (e) {
-      console.error('Signature verification error:', e.message);
       return false;
     }
   }

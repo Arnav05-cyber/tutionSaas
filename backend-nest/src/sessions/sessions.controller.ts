@@ -17,6 +17,8 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ClerkId } from '../common/decorators/current-user.decorator';
 import { SessionsService } from './sessions.service';
+import { CreateSessionDto } from './dto/create-session.dto';
+import { UpdateSessionDto } from './dto/update-session.dto';
 
 @Controller()
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -27,7 +29,7 @@ export class SessionsController {
   @Roles(Role.TEACHER, Role.ADMIN)
   createSession(
     @Param('batchId', ParseIntPipe) batchId: number,
-    @Body() body: any,
+    @Body() body: CreateSessionDto,
     @ClerkId() clerkId: string,
   ) {
     return this.sessionsService.createSession(batchId, body, clerkId);
@@ -53,7 +55,7 @@ export class SessionsController {
   @Roles(Role.TEACHER, Role.ADMIN)
   updateSession(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: any,
+    @Body() body: UpdateSessionDto,
     @ClerkId() clerkId: string,
   ) {
     return this.sessionsService.updateSession(id, body, clerkId);

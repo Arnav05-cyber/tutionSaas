@@ -15,6 +15,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser, ClerkId } from '../common/decorators/current-user.decorator';
 import { BatchesService } from './batches.service';
+import { CreateBatchDto } from './dto/create-batch.dto';
 
 @Controller('api/batches')
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -23,7 +24,7 @@ export class BatchesController {
 
   @Post()
   @Roles(Role.ADMIN)
-  createBatch(@Body() body: any) {
+  createBatch(@Body() body: CreateBatchDto) {
     return this.batchesService.createBatch(body);
   }
 

@@ -17,8 +17,13 @@ export class AdminInitService implements OnApplicationBootstrap {
       return;
     }
 
-    const targetEmail = this.config.get('ADMIN_EMAIL') || 'arnav.vyas06@gmail.com';
-    const targetPassword = this.config.get('ADMIN_PASSWORD') || '@Arnav0509';
+    const targetEmail = this.config.get('ADMIN_EMAIL');
+    const targetPassword = this.config.get('ADMIN_PASSWORD');
+
+    if (!targetEmail || !targetPassword) {
+      console.log('ADMIN_EMAIL or ADMIN_PASSWORD not configured, skipping Admin Init.');
+      return;
+    }
 
     let clerkId: string | null = null;
 
@@ -31,7 +36,7 @@ export class AdminInitService implements OnApplicationBootstrap {
 
       if (Array.isArray(users) && users.length > 0) {
         clerkId = users[0].id;
-        console.log('Admin user already exists in Clerk:', clerkId);
+        console.log('Admin user already exists in Clerk.');
       } else {
         const createRes = await fetch('https://api.clerk.com/v1/users', {
           method: 'POST',
@@ -42,17 +47,17 @@ export class AdminInitService implements OnApplicationBootstrap {
           body: JSON.stringify({
             email_address: [targetEmail],
             password: targetPassword,
-            first_name: 'Arnav',
-            last_name: 'Admin',
+            first_name: 'Admin',
+            last_name: 'User',
             skip_password_checks: true,
           }),
         });
         const created = await createRes.json() as any;
         clerkId = created.id;
-        console.log('Created admin user in Clerk:', clerkId);
+        console.log('Admin user created in Clerk.');
       }
     } catch (e) {
-      console.error('Error communicating with Clerk API:', e.message);
+      console.error('Error communicating with Clerk API during admin init.');
       return;
     }
 
@@ -68,12 +73,12 @@ export class AdminInitService implements OnApplicationBootstrap {
         data: {
           clerkId,
           email: targetEmail,
-          fullName: 'Arnav Admin',
+          fullName: 'Admin',
           role: Role.ADMIN,
           onboardingComplete: true,
         },
       });
-      console.log('Saved Admin user to database.');
+      console.log('Admin user saved to database.');
     } else {
       const updates: any = {};
       if (existing.clerkId !== clerkId) updates.clerkId = clerkId;
@@ -81,7 +86,7 @@ export class AdminInitService implements OnApplicationBootstrap {
 
       if (Object.keys(updates).length > 0) {
         await this.prisma.user.update({ where: { id: existing.id }, data: updates });
-        console.log('Updated admin user record.');
+        console.log('Admin user record updated.');
       }
     }
   }

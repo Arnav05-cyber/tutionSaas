@@ -13,6 +13,7 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser, ClerkId } from '../common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
+import { OnboardDto } from './dto/onboard.dto';
 
 @Controller('api/users')
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -20,7 +21,7 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('onboard')
-  async onboard(@ClerkId() clerkId: string, @CurrentUser() user: any, @Body() body: any) {
+  async onboard(@ClerkId() clerkId: string, @CurrentUser() user: any, @Body() body: OnboardDto) {
     const email = user?.email || body.email || null;
     const saved = await this.usersService.onboard(clerkId, email, body);
     return toUserResponse(saved);

@@ -14,6 +14,8 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ClerkId } from '../common/decorators/current-user.decorator';
 import { BatchDoubtsService } from './batch-doubts.service';
+import { CreateDoubtDto } from './dto/create-doubt.dto';
+import { RespondDoubtDto } from './dto/respond-doubt.dto';
 
 @Controller('api/batch-doubts')
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -22,7 +24,7 @@ export class BatchDoubtsController {
 
   @Post()
   @Roles(Role.STUDENT)
-  createDoubt(@Body() body: any, @ClerkId() clerkId: string) {
+  createDoubt(@Body() body: CreateDoubtDto, @ClerkId() clerkId: string) {
     return this.batchDoubtsService.createDoubt(body, clerkId);
   }
 
@@ -42,7 +44,7 @@ export class BatchDoubtsController {
   @Roles(Role.TEACHER)
   respondToDoubt(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: any,
+    @Body() body: RespondDoubtDto,
     @ClerkId() clerkId: string,
   ) {
     return this.batchDoubtsService.respondToDoubt(id, body, clerkId);

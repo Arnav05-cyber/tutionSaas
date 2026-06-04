@@ -13,12 +13,14 @@ import * as crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { Role } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { ClerkAuthGuard } from '../common/guards/clerk-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ClerkId } from '../common/decorators/current-user.decorator';
 import { ParentService } from './parent.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { VerifyPaymentDto } from '../student/dto/verify-payment.dto';
 
 @Controller('api/parent')
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -85,11 +87,12 @@ export class ParentController {
   }
 
   @Post('students/:studentId/fees/order')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async createOrder(
     @ClerkId() clerkId: string,
     @Param('studentId', ParseIntPipe) studentId: number,
   ) {
-    await this.parentService.getStudentFeeStatus(clerkId, studentId); // asserts link
+    await this.parentService.getStudentFeeStatus(clerkId, studentId);
 
     const student = await this.prisma.user.findUnique({ where: { id: studentId } });
     if (!student) throw new BadRequestException('Student not found');
@@ -119,12 +122,13 @@ export class ParentController {
   }
 
   @Post('students/:studentId/fees/verify')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async verifyPayment(
     @ClerkId() clerkId: string,
     @Param('studentId', ParseIntPipe) studentId: number,
-    @Body() body: any,
+    @Body() body: VerifyPaymentDto,
   ) {
-    await this.parentService.getStudentFeeStatus(clerkId, studentId); // asserts link
+    await this.parentService.getStudentFeeStatus(clerkId, studentId);
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
     const keySecret = this.config.get('RAZORPAY_KEY_SECRET');

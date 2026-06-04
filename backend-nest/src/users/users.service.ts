@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { AuditService } from '../audit/audit.service';
@@ -33,7 +34,13 @@ export class UsersService {
     if (!dto.consentGiven) {
       throw new BadRequestException('Consent to privacy policy is required');
     }
-    const role = dto.role.toUpperCase() as Role;
+
+    const normalizedRole = dto.role.toUpperCase();
+    const allowedRoles: Role[] = [Role.TEACHER, Role.STUDENT, Role.PARENT];
+    if (!allowedRoles.includes(normalizedRole as Role)) {
+      throw new BadRequestException('Invalid role');
+    }
+    const role = normalizedRole as Role;
 
     if (role === Role.TEACHER) {
       if (!dto.inviteToken?.trim()) {
@@ -135,32 +142,22 @@ export class UsersService {
   async deleteUserByClerkId(clerkId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({ where: { clerkId } });
     if (!user) {
-      console.log(`User not found for clerkId: ${clerkId} — skipping deletion`);
       return;
     }
 
     const userId = user.id;
 
-    // 1. Delete attendance records
     await this.prisma.attendanceRecord.deleteMany({ where: { studentId: userId } });
-
-    // 2. Delete session join logs
     await this.prisma.sessionJoinLog.deleteMany({ where: { studentId: userId } });
-
-    // 3. Delete batch join requests
     await this.prisma.batchJoinRequest.deleteMany({ where: { studentId: userId } });
-
-    // 4. Delete payment history
     await this.prisma.paymentHistory.deleteMany({ where: { studentId: userId } });
 
-    // 5. Delete resources (with storage cleanup)
     const resources = await this.prisma.resource.findMany({ where: { uploadedById: userId } });
     for (const r of resources) {
-      try { await this.storage.delete(r.storageKey); } catch (e) { console.error(e); }
+      try { await this.storage.delete(r.storageKey); } catch (e) { /* ignore */ }
     }
     await this.prisma.resource.deleteMany({ where: { uploadedById: userId } });
 
-    // 6. Remove from batch students (handled by Prisma implicit many-to-many disconnect)
     const batches = await this.prisma.batch.findMany({
       where: { students: { some: { id: userId } } },
     });
@@ -171,7 +168,6 @@ export class UsersService {
       });
     }
 
-    // 7. Delete profile
     if (user.role === Role.TEACHER) {
       await this.prisma.teacherProfile.deleteMany({ where: { id: userId } });
     } else if (user.role === Role.STUDENT) {
@@ -180,10 +176,8 @@ export class UsersService {
       await this.prisma.parentProfile.deleteMany({ where: { id: userId } });
     }
 
-    // 8. Delete user
     await this.prisma.user.delete({ where: { id: userId } });
     await this.audit.log('USER_DELETED', undefined, 'User', `userId=${userId}`);
-    console.log(`User ${userId} deleted successfully`);
   }
 
   private async generateUniqueTeacherCode(fullName: string): Promise<string> {
@@ -208,9 +202,10 @@ export class UsersService {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code: string;
     do {
-      code = Array.from({ length: 6 }, () =>
-        chars[Math.floor(Math.random() * chars.length)],
-      ).join('');
+      const bytes = randomBytes(6);
+      code = Array.from(bytes)
+        .map((b) => chars[b % chars.length])
+        .join('');
     } while (
       await this.prisma.studentProfile.findUnique({ where: { parentLinkCode: code } })
     );

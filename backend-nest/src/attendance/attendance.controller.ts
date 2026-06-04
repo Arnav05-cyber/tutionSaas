@@ -11,8 +11,9 @@ import { Role } from '@prisma/client';
 import { ClerkAuthGuard } from '../common/guards/clerk-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { ClerkId } from '../common/decorators/current-user.decorator';
+import { ClerkId, CurrentUser } from '../common/decorators/current-user.decorator';
 import { AttendanceService } from './attendance.service';
+import { MarkAttendanceDto } from './dto/mark-attendance.dto';
 
 @Controller()
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -23,7 +24,7 @@ export class AttendanceController {
   @Roles(Role.TEACHER)
   markAttendance(
     @Param('sessionId', ParseIntPipe) sessionId: number,
-    @Body() body: any,
+    @Body() body: MarkAttendanceDto,
     @ClerkId() clerkId: string,
   ) {
     return this.attendanceService.markAttendance(sessionId, body, clerkId);
@@ -40,7 +41,9 @@ export class AttendanceController {
   getStudentSummary(
     @Param('batchId', ParseIntPipe) batchId: number,
     @Param('studentId', ParseIntPipe) studentId: number,
+    @CurrentUser() user: any,
+    @ClerkId() clerkId: string,
   ) {
-    return this.attendanceService.getStudentAttendanceSummary(batchId, studentId);
+    return this.attendanceService.getStudentAttendanceSummary(batchId, studentId, user, clerkId);
   }
 }

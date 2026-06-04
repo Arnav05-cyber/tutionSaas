@@ -10,11 +10,13 @@ import * as crypto from 'crypto';
 import Razorpay from 'razorpay';
 import { Role } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import { ClerkAuthGuard } from '../common/guards/clerk-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
-import { CurrentUser, ClerkId } from '../common/decorators/current-user.decorator';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
+import { VerifyPaymentDto } from './dto/verify-payment.dto';
 
 @Controller('api/student')
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -51,6 +53,7 @@ export class StudentController {
   }
 
   @Post('fees/order')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   async createOrder(@CurrentUser() user: any) {
     const batches = await this.prisma.batch.findMany({
       where: { students: { some: { id: user.id } } },
@@ -79,7 +82,8 @@ export class StudentController {
   }
 
   @Post('fees/verify')
-  async verifyPayment(@CurrentUser() user: any, @Body() body: any) {
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  async verifyPayment(@CurrentUser() user: any, @Body() body: VerifyPaymentDto) {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
 
     const keySecret = this.config.get('RAZORPAY_KEY_SECRET');
@@ -88,7 +92,16 @@ export class StudentController {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
-    const isValid = generated === razorpay_signature;
+    let isValid = false;
+    try {
+      const generatedBuf = Buffer.from(generated, 'hex');
+      const signatureBuf = Buffer.from(razorpay_signature, 'hex');
+      isValid =
+        generatedBuf.length === signatureBuf.length &&
+        crypto.timingSafeEqual(generatedBuf, signatureBuf);
+    } catch {
+      isValid = false;
+    }
 
     const payment = await this.prisma.paymentHistory.findUnique({
       where: { razorpayOrderId: razorpay_order_id },

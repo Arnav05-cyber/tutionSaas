@@ -14,6 +14,8 @@ import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { ClerkId } from '../common/decorators/current-user.decorator';
 import { QueriesService } from './queries.service';
+import { CreateQueryDto } from './dto/create-query.dto';
+import { RespondQueryDto } from './dto/respond-query.dto';
 
 @Controller('api/queries')
 @UseGuards(ClerkAuthGuard, RolesGuard)
@@ -22,7 +24,7 @@ export class QueriesController {
 
   @Post()
   @Roles(Role.STUDENT)
-  createQuery(@Body() body: any, @ClerkId() clerkId: string) {
+  createQuery(@Body() body: CreateQueryDto, @ClerkId() clerkId: string) {
     return this.queriesService.createQuery(body, clerkId);
   }
 
@@ -42,7 +44,7 @@ export class QueriesController {
   @Roles(Role.ADMIN)
   respondToQuery(
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: any,
+    @Body() body: RespondQueryDto,
   ) {
     return this.queriesService.replyToQuery(id, body);
   }

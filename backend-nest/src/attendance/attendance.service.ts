@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -27,7 +28,6 @@ export class AttendanceService {
       throw new ForbiddenException('You can only mark attendance for your own sessions');
     }
 
-    // Upsert attendance records
     for (const entry of dto.entries) {
       await this.prisma.attendanceRecord.upsert({
         where: { sessionId_studentId: { sessionId, studentId: entry.studentId } },
@@ -58,7 +58,25 @@ export class AttendanceService {
     return toAttendanceResponse(session, records);
   }
 
-  async getStudentAttendanceSummary(batchId: number, studentId: number) {
+  async getStudentAttendanceSummary(
+    batchId: number,
+    studentId: number,
+    requestingUser: any,
+    clerkId: string,
+  ) {
+    if (requestingUser.role === Role.STUDENT) {
+      if (requestingUser.id !== studentId) {
+        throw new ForbiddenException('You can only view your own attendance');
+      }
+    } else if (requestingUser.role === Role.TEACHER) {
+      const batch = await this.prisma.batch.findUnique({ where: { id: batchId } });
+      if (!batch) throw new NotFoundException('Batch not found');
+      const teacher = await this.prisma.user.findUnique({ where: { clerkId } });
+      if (!teacher || batch.teacherId !== teacher.id) {
+        throw new ForbiddenException('You can only view attendance for your own batches');
+      }
+    }
+
     const total = await this.prisma.attendanceRecord.count({
       where: { studentId, session: { batchId } },
     });
