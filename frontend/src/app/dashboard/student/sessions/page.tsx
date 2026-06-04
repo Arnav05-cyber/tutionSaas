@@ -3,6 +3,7 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { useSessionsRealtime } from '@/hooks/useSessionsRealtime';
 
 interface Session {
   id: number;
@@ -41,17 +42,21 @@ export default function StudentSessionsPage() {
   const [joining, setJoining] = useState<number | null>(null);
   const [now, setNow] = useState(new Date());
 
+  async function load() {
+    const token = await getToken();
+    const data = await api.get('/api/sessions/upcoming', token);
+    setSessions(data);
+    setLoading(false);
+  }
+
   useEffect(() => {
-    async function load() {
-      const token = await getToken();
-      const data = await api.get('/api/sessions/upcoming', token);
-      setSessions(data);
-      setLoading(false);
-    }
     load();
     const interval = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useSessionsRealtime(setSessions, { onInsert: load });
 
   async function joinSession(session: Session) {
     if (session.platform === 'LIVEKIT') {

@@ -4,6 +4,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import api from '@/lib/api';
+import { useSessionsRealtime } from '@/hooks/useSessionsRealtime';
 
 interface ScheduleSlot {
   id: number;
@@ -102,6 +103,11 @@ export default function BatchDetailPage() {
     const interval = setInterval(() => setNow(new Date()), 30000);
     return () => clearInterval(interval);
   }, [id]);
+
+  useSessionsRealtime(setSessions, {
+    batchId: id ? Number(id) : undefined,
+    batchName: batch?.name ?? '',
+  });
 
   async function loadData() {
     const token = await getToken();

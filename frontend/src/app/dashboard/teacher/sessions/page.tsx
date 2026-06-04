@@ -3,6 +3,7 @@
 import { useAuth } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
+import { useSessionsRealtime } from '@/hooks/useSessionsRealtime';
 
 interface Session {
   id: number;
@@ -18,21 +19,25 @@ export default function TeacherSessionsPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      const token = await getToken();
-      const batches = await api.get('/api/batches/my', token);
-      const allSessions: Session[] = [];
-      for (const batch of batches) {
-        const batchSessions = await api.get(`/api/batches/${batch.id}/sessions`, token);
-        allSessions.push(...batchSessions.map((s: Session) => ({ ...s, batchName: batch.name })));
-      }
-      allSessions.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
-      setSessions(allSessions);
-      setLoading(false);
+  async function load() {
+    const token = await getToken();
+    const batches = await api.get('/api/batches/my', token);
+    const allSessions: Session[] = [];
+    for (const batch of batches) {
+      const batchSessions = await api.get(`/api/batches/${batch.id}/sessions`, token);
+      allSessions.push(...batchSessions.map((s: Session) => ({ ...s, batchName: batch.name })));
     }
+    allSessions.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime());
+    setSessions(allSessions);
+    setLoading(false);
+  }
+
+  useEffect(() => {
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useSessionsRealtime(setSessions, { onInsert: load });
 
   if (loading) return <div className="loading-page"><div className="spinner" /></div>;
 
