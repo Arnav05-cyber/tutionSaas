@@ -15,6 +15,13 @@ interface UserData {
   teacherCode: string | null;
 }
 
+const ROLE_PREFIX: Record<string, string> = {
+  ADMIN: 'admin',
+  TEACHER: 'teacher',
+  STUDENT: 'student',
+  PARENT: 'parent',
+};
+
 const NAV: Record<string, { label: string; href: string }[]> = {
   ADMIN: [
     { label: 'Dashboard', href: '/dashboard/admin' },
@@ -72,6 +79,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           await api.patch('/api/users/me', { email: clerkUser.primaryEmailAddress.emailAddress }, token);
           data.email = clerkUser.primaryEmailAddress.emailAddress;
         }
+
+        // Guard against visiting another role's dashboard section directly (e.g. a
+        // student navigating to /dashboard/teacher). Redirect to the user's own section.
+        const segment = pathname.split('/')[2];
+        const expectedPrefix = ROLE_PREFIX[data.role];
+        if (segment && expectedPrefix && segment !== expectedPrefix) {
+          router.replace(`/dashboard/${expectedPrefix}`);
+          return;
+        }
+
         setUser(data);
       } catch {
         router.push('/onboarding');
@@ -80,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     }
     load();
-  }, [isLoaded, isUserLoaded, getToken, router, clerkUser]);
+  }, [isLoaded, isUserLoaded, getToken, router, clerkUser, pathname]);
 
   // Close sidebar on route change (mobile)
   useEffect(() => {
